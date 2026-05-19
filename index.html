@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PGT — Programa de Gestão de Terceiros</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --primary:#4f46e5; --primary-dark:#3730a3; --success:#10b981;
+  --warning:#f59e0b; --danger:#ef4444; --sidebar:#0f172a;
+  --bg:#f1f5f9; --card:#ffffff; --text:#1e293b; --muted:#64748b; --border:#e2e8f0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+/* ── TELAS ── */
+.tela{display:none!important;}
+.tela.ativa{display:flex!important;}
+
+/* ── TELA LOGIN ── */
+#telaLogin{
+  min-height:100vh;
+  background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#312e81 100%);
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+#telaLogin::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 50%, rgba(99,102,241,.15) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 20%, rgba(79,70,229,.1) 0%, transparent 50%);
+}
+.login-header{text-align:center;color:white;margin-bottom:48px;position:relative;z-index:1;}
+.login-header .logo{font-size:48px;margin-bottom:12px;}
+.login-header h1{font-size:32px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px;}
+.login-header p{font-size:15px;opacity:.65;}
+
+.portal-cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;}
+.portal-card{
+  background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.15);
+  border-radius:20px;padding:40px 36px;width:220px;cursor:pointer;
+  transition:all .3s;color:white;text-align:center;backdrop-filter:blur(12px);
+}
+.portal-card:hover{
+  background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);
+  transform:translateY(-6px);box-shadow:0 20px 48px rgba(0,0,0,.35);
+}
+.portal-card .icon{font-size:44px;margin-bottom:14px;}
+.portal-card h3{font-size:17px;font-weight:700;margin-bottom:6px;}
+.portal-card span{font-size:13px;opacity:.7;}
+
+.login-wrap{display:flex;align-items:center;justify-content:center;width:100%;position:relative;z-index:1;}
+.login-box{
+  background:white;border-radius:24px;padding:44px;width:100%;max-width:420px;
+  box-shadow:0 32px 80px rgba(0,0,0,.4);
+}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo .logo-icon{font-size:36px;margin-bottom:10px;}
+.login-logo h1{font-size:24px;font-weight:800;color:var(--primary);}
+.login-logo p{color:var(--muted);font-size:13px;margin-top:4px;}
+.login-titulo{font-size:16px;font-weight:700;text-align:center;margin-bottom:22px;color:var(--text);}
+.msg-erro{display:none;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;
+  border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:14px;}
+.msg-ok{display:none;background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;
+  border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:14px;}
+.login-links{display:flex;justify-content:space-between;margin-top:14px;}
+.login-links a{font-size:13px;color:var(--primary);cursor:pointer;font-weight:500;}
+.login-links a:hover{text-decoration:underline;}
+.link-voltar{display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--muted);cursor:pointer;transition:color .2s;}
+.link-voltar:hover{color:var(--primary);}
+
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+input,select,textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-family:inherit;font-size:14px;color:var(--text);background:white;transition:border-color .2s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);}
+textarea{resize:vertical;min-height:80px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:10px;
+  border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--primary);color:white;} .btn-primary:hover{background:var(--primary-dark);}
+.btn-secondary{background:var(--bg);color:var(--text);} .btn-secondary:hover{background:var(--border);}
+.btn-success{background:var(--success);color:white;} .btn-success:hover{background:#059669;}
+.btn-danger{background:#fef2f2;color:var(--danger);border:1px solid #fecaca;} .btn-danger:hover{background:var(--danger);color:white;}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:8px;}
+.btn-full{width:100%;justify-content:center;padding:13px;}
+
+#telaApp{flex-direction:row;min-height:100vh;}
+.sidebar{width:260px;min-height:100vh;background:var(--sidebar);color:white;display:flex;
+  flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-header{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sidebar-header h2{font-size:18px;font-weight:800;} .sidebar-header small{color:#64748b;font-size:11px;}
+.user-card{margin:14px;padding:12px;background:rgba(255,255,255,.06);border-radius:12px;
+  display:flex;align-items:center;gap:10px;}
+.user-avatar{width:36px;height:36px;background:var(--primary);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+.user-card h4{font-size:13px;font-weight:600;} .user-card span{font-size:11px;color:#64748b;}
+.sidebar-nav{padding:8px 12px;flex:1;}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#475569;
+  font-weight:600;padding:16px 8px 8px;}
+.menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+  cursor:pointer;color:#94a3b8;transition:all .2s;font-size:13px;font-weight:500;margin-bottom:2px;}
+.menu-item:hover{background:rgba(255,255,255,.08);color:white;}
+.menu-item.ativo{background:var(--primary);color:white;}
+.menu-item .icon{font-size:16px;width:20px;text-align:center;}
+.btn-logout{margin:12px;padding:10px;width:calc(100% - 24px);background:rgba(239,68,68,.15);
+  border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:10px;cursor:pointer;
+  font-size:13px;font-family:inherit;font-weight:500;transition:all .2s;}
+.btn-logout:hover{background:#ef4444;color:white;}
+.content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:white;padding:16px 32px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.topbar h1{font-size:22px;font-weight:800;}
+.main-content{padding:32px;overflow-y:auto;flex:1;}
+.pagina{display:none;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;margin-bottom:28px;}
+/* New dashboard cards */
+.dash-card{
+  background:white;border-radius:18px;padding:22px 20px;
+  border-top:3px solid transparent;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;
+}
+.dash-card.blue  {border-top-color:#3b82f6;}
+.dash-card.green {border-top-color:#10b981;}
+.dash-card.orange{border-top-color:#f59e0b;}
+.dash-card.red   {border-top-color:#ef4444;}
+.dash-card.purple{border-top-color:#7c3aed;}
+.dash-card-top{display:flex;align-items:flex-start;justify-content:space-between;}
+.dash-card-value{font-size:36px;font-weight:800;line-height:1;color:var(--text);}
+.dash-card-icon{
+  width:48px;height:48px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;
+}
+.dash-card-icon.blue  {background:#eff6ff;}
+.dash-card-icon.green {background:#ecfdf5;}
+.dash-card-icon.orange{background:#fffbeb;}
+.dash-card-icon.red   {background:#fef2f2;}
+.dash-card-icon.purple{background:#f5f3ff;}
+.dash-card-label{font-size:13px;color:var(--muted);font-weight:500;}
+.dash-card-trend{font-size:12px;font-weight:600;}
+.dash-card-trend.up  {color:#10b981;}
+.dash-card-trend.down{color:#ef4444;}
+.dash-card-trend.neutral{color:var(--muted);}
+
+/* Legacy stat-card kept for vencimentos page */
+.stat-card{background:white;border-radius:16px;padding:20px;border-left:4px solid;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.stat-card.blue{border-color:#3b82f6;} .stat-card.green{border-color:var(--success);}
+.stat-card.orange{border-color:var(--warning);} .stat-card.red{border-color:var(--danger);}
+.stat-card.purple{border-color:var(--primary);}
+.stat-value{font-size:32px;font-weight:800;line-height:1;margin:8px 0 4px;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;} .stat-icon{font-size:22px;}
+
+/* Rankings */
+.rank-list{display:flex;flex-direction:column;gap:0;}
+.rank-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.rank-item:last-child{border-bottom:none;}
+.rank-num{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;
+}
+.rank-num.gold  {background:#f59e0b;color:white;}
+.rank-num.silver{background:#94a3b8;color:white;}
+.rank-num.bronze{background:#f97316;color:white;}
+.rank-num.other {background:#e2e8f0;color:#64748b;}
+.rank-info{flex:1;}
+.rank-name{font-size:14px;font-weight:600;color:var(--text);}
+.rank-sub {font-size:12px;color:var(--muted);}
+.rank-val {font-size:18px;font-weight:800;}
+.rank-val.green{color:#4f46e5;}
+.rank-val.red  {color:#ef4444;}
+
+/* Resumo empresa table */
+.conf-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:700;
+}
+.conf-badge.green {background:#d1fae5;color:#065f46;}
+.conf-badge.yellow{background:#fef3c7;color:#92400e;}
+.conf-badge.red   {background:#fee2e2;color:#991b1b;}
+.conf-progress{height:6px;border-radius:4px;background:#e2e8f0;margin-top:4px;overflow:hidden;}
+.conf-progress-bar{height:100%;border-radius:4px;}
+.conf-pct{font-size:14px;font-weight:800;}
+.conf-pct.green {color:#10b981;}
+.conf-pct.orange{color:#f59e0b;}
+.conf-pct.red   {color:#ef4444;}
+.resumo-search{
+  padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;color:var(--text);outline:none;width:220px;font-family:inherit;
+}
+.resumo-search:focus{border-color:var(--primary);}
+.card{background:white;border-radius:16px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;}
+
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--bg);}
+th{text-align:left;padding:12px 16px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+td{padding:14px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge.success{background:#d1fae5;color:#065f46;} .badge.warning{background:#fef3c7;color:#92400e;}
+.badge.danger{background:#fee2e2;color:#991b1b;}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal.ativo{display:flex;}
+.modal-box{background:white;border-radius:20px;padding:32px;width:100%;max-width:600px;
+  max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2);}
+.modal-box.largo{max-width:900px;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+.modal-header h2{font-size:18px;font-weight:700;}
+.modal-close{background:var(--bg);border:none;cursor:pointer;width:32px;height:32px;
+  border-radius:8px;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:var(--border);}
+.modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:24px;
+  padding-top:20px;border-top:1px solid var(--border);}
+
+.doc-item{background:white;border:1.5px solid var(--border);border-radius:12px;
+  padding:18px 20px;margin-bottom:12px;transition:border-color .2s;}
+.doc-item:hover{border-color:var(--primary);}
+.doc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.doc-title{font-weight:600;margin-bottom:6px;}
+.doc-meta{font-size:13px;color:var(--muted);}
+.doc-actions{display:flex;gap:8px;flex-shrink:0;}
+
+#analisePreview,#previewArea{width:100%;min-height:300px;background:var(--bg);
+  border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:16px 0;}
+
+#telaEmpresa{flex-direction:column;min-height:100vh;}
+.emp-topbar{background:var(--sidebar);color:white;padding:0 24px;display:flex;
+  align-items:center;justify-content:space-between;height:60px;flex-shrink:0;}
+.emp-body{display:flex;flex:1;}
+.emp-sidebar{width:220px;background:white;border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;}
+.emp-menu-item{padding:12px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;
+  font-size:14px;font-weight:500;border-left:3px solid transparent;color:var(--text);transition:all .2s;}
+.emp-menu-item:hover{background:var(--bg);border-left-color:var(--primary);color:var(--primary);}
+.emp-menu-item.ativo{background:#eef2ff;border-left-color:var(--primary);color:var(--primary);font-weight:700;}
+.emp-content{flex:1;padding:28px;overflow-y:auto;}
+.emp-pagina{display:none;}
+
+.notif-badge{background:#ef4444;color:white;border-radius:10px;padding:1px 7px;
+  font-size:11px;font-weight:700;margin-left:auto;}
+
+#loadingOverlay{
+  display:none;position:fixed;inset:0;background:rgba(15,23,42,.85);z-index:9999;
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;color:white;
+  backdrop-filter:blur(6px);
+}
+#loadingOverlay.show{display:flex;}
+.spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.2);border-top-color:white;
+  border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.info-demo{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;
+  font-size:12px;color:#92400e;margin-bottom:16px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <span style="font-size:14px;font-weight:600;">Carregando...</span>
+</div>
+
+<!-- ══ TELA LOGIN ══ -->
+<div id="telaLogin" class="tela">
+  <div id="viewPortal">
+    <div class="login-header">
+      <div class="logo">🏗️</div>
+      <h1>PGT</h1>
+      <p>Programa de Gestão de Terceiros</p>
+    </div>
+    <div class="portal-cards">
+      <div class="portal-card" onclick="irParaLogin('admin')">
+        <div class="icon">🔐</div>
+        <h3>Acesso Administrativo</h3>
+        <span>Analistas e Administradores</span>
+      </div>
+      <div class="portal-card" onclick="irParaLogin('empresa')">
+        <div class="icon">🏢</div>
+        <h3>Portal da Empresa</h3>
+        <span>Empresas cadastradas</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewLogin" style="display:none;width:100%;">
+    <div class="login-wrap">
+      <div class="login-box">
+        <div class="login-logo">
+          <div class="logo-icon">🏗️</div>
+          <h1>PGT</h1>
+          <p id="loginSubtitulo">Sistema de Gestão de Terceiros</p>
+        </div>
+        <div class="login-titulo" id="loginTitulo">Entrar</div>
+        <div class="msg-erro" id="msgErro"></div>
+        <div class="msg-ok"   id="msgOk"></div>
+
+        <!-- Login Admin -->
+        <div id="frmLoginAdmin">
+          <div class="info-demo">🧪 Modo desenvolvimento — use <strong>admin@pgt.com</strong> / <strong>admin123</strong></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail" placeholder="admin@pgt.com" onkeydown="if(event.key==='Enter') fazerLogin()"></div>
+          <div class="form-group"><label>Senha</label><input type="password" id="adminSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()"></div>
+          <button class="btn btn-primary btn-full" onclick="fazerLogin()">Entrar</button>
+          <div class="login-links">
+            <a onclick="mostrarForm('frmCriarConta')">Criar conta</a>
+          </div>
+        </div>
+
+        <!-- Login Empresa -->
+        <div id="frmLoginEmpresa" style="display:none;">
+          <div class="info-demo">🧪 Modo desenvolvimento — use CNPJ <strong>12345678000195</strong> / senha <strong>123456</strong></div>
+          <div class="form-group"><label>CNPJ (somente números)</label><input type="text" id="empCnpjLogin" placeholder="00000000000000" maxlength="14" onkeydown="if(event.key==='Enter') fazerLoginEmpresa()"></div>
+          <div class="form-group"><label>Senha</label><input type="password" id="empSenhaLogin" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLoginEmpresa()"></div>
+          <button class="btn btn-primary btn-full" onclick="fazerLoginEmpresa()">Entrar no Portal</button>
+        </div>
+
+        <!-- Criar Conta -->
+        <div id="frmCriarConta" style="display:none;">
+          <div class="form-group"><label>Nome completo</label><input type="text" id="criarNome" placeholder="Seu nome"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="criarEmail" placeholder="seu@email.com"></div>
+          <div class="form-group"><label>Senha (mín. 6 caracteres)</label><input type="password" id="criarSenha" placeholder="••••••••"></div>
+          <button class="btn btn-primary btn-full" onclick="criarConta()">Criar Conta</button>
+        </div>
+
+        <a class="link-voltar" onclick="voltarInicio()">← Voltar à seleção de acesso</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TELA APP (Admin/Analista) ══ -->
+<div id="telaApp" class="tela">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>🏗️ PGT</h2>
+      <small>Gestão de Terceiros</small>
+    </div>
+    <div class="user-card">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div>
+        <h4 id="userName">Usuário</h4>
+        <span id="userRole">Perfil</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Principal</div>
+      <div class="menu-item ativo" onclick="showPagina('dashboard')"><span class="icon">📊</span> Dashboard</div>
+      <div class="nav-label">Cadastros</div>
+      <div class="menu-item" onclick="showPagina('empresas')"><span class="icon">🏢</span> Empresas</div>
+      <div class="menu-item" onclick="showPagina('colaboradores')"><span class="icon">👥</span> Colaboradores</div>
+      <div class="menu-item" onclick="showPagina('tipos')"><span class="icon">📋</span> Tipos de Documento</div>
+      <div class="nav-label">Documentos</div>
+      <div class="menu-item" onclick="showPagina('documentos')"><span class="icon">📁</span> Documentos</div>
+      <div class="menu-item" onclick="showPagina('analise')"><span class="icon">🔍</span> Análise</div>
+      <div class="menu-item" onclick="showPagina('vencimentos')"><span class="icon">⏰</span> Vencimentos</div>
+      <div class="nav-label">Administração</div>
+      <div class="menu-item" id="menuUsuarios" style="display:none;" onclick="showPagina('usuarios')">
+        <span class="icon">👤</span> Usuários
+        <span class="notif-badge" id="badgeUsuarios"></span>
+      </div>
+    </nav>
+    <button class="btn-logout" onclick="fazerLogout()">🚪 Sair</button>
+  </div>
+  <div class="content-wrap">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <span style="font-size:13px;color:var(--muted);">PGT v1.0 — Modo Local</span>
+    </div>
+    <div class="main-content">
+
+      <!-- Dashboard -->
+      <div id="pagina-dashboard" class="pagina" style="display:block;">
+        <!-- Row 1: 5 cards -->
+        <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+          <div class="dash-card blue">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statEmpresas">—</div>
+              <div class="dash-card-icon blue">🏭</div>
+            </div>
+            <div class="dash-card-label">Empresas Ativas</div>
+            <div class="dash-card-trend up" id="trendEmpresas">↑ 12% este mês</div>
+          </div>
+          <div class="dash-card green">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statContratos">—</div>
+              <div class="dash-card-icon green">📋</div>
+            </div>
+            <div class="dash-card-label">Contratos Vigentes</div>
+            <div class="dash-card-trend neutral" id="trendContratos">Contratos ativos</div>
+          </div>
+          <div class="dash-card orange">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statVence30">—</div>
+              <div class="dash-card-icon orange">⚠️</div>
+            </div>
+            <div class="dash-card-label">Vencem em 30 dias</div>
+            <div class="dash-card-trend neutral" id="trendVence30">Documentos próximos</div>
+          </div>
+          <div class="dash-card purple">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statColaboradores">—</div>
+              <div class="dash-card-icon purple">👷</div>
+            </div>
+            <div class="dash-card-label">Colaboradores Ativos</div>
+            <div class="dash-card-trend up" id="trendColaboradores">↑ 8% este mês</div>
+          </div>
+          <div class="dash-card green">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statAprovados">—</div>
+              <div class="dash-card-icon green">✅</div>
+            </div>
+            <div class="dash-card-label">Documentos Aprovados</div>
+            <div class="dash-card-trend up" id="trendAprovados">↑ 5% esta semana</div>
+          </div>
+        </div>
+        <!-- Row 2: 3 cards -->
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;">
+          <div class="dash-card orange">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statPendentes">—</div>
+              <div class="dash-card-icon orange">⏳</div>
+            </div>
+            <div class="dash-card-label">Pendentes de Análise</div>
+            <div class="dash-card-trend down" id="trendPendentes">↓ 3% esta semana</div>
+          </div>
+          <div class="dash-card red">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statReprovados">—</div>
+              <div class="dash-card-icon red">❌</div>
+            </div>
+            <div class="dash-card-label">Reprovados</div>
+            <div class="dash-card-trend neutral" id="trendReprovados">Documentos reprovados</div>
+          </div>
+          <div class="dash-card orange">
+            <div class="dash-card-top">
+              <div class="dash-card-value" id="statVencidos">—</div>
+              <div class="dash-card-icon orange">⚠️</div>
+            </div>
+            <div class="dash-card-label">Documentos Vencidos</div>
+            <div class="dash-card-trend neutral" id="trendVencidos">Requer atenção</div>
+          </div>
+        </div>
+
+        <!-- Rankings -->
+        <div class="grid-2" style="margin-bottom:24px;">
+          <div class="card">
+            <div class="card-title">🏆 Top 5 — Empresas Mais Conformes</div>
+            <div id="rankingConformes" class="rank-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">⚠️ Empresas com Mais Reprovações</div>
+            <div id="rankingReprovacoes" class="rank-list"></div>
+          </div>
+        </div>
+
+        <!-- Resumo por Empresa -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div class="card-title" style="margin-bottom:0;">📋 Resumo por Empresa</div>
+            <input class="resumo-search" id="resumoSearch" placeholder="Buscar empresa..." oninput="filtrarResumo(this.value)">
+          </div>
+          <div class="table-wrap">
+            <table id="resumoTable">
+              <thead><tr>
+                <th>EMPRESA</th><th>ENVIADOS</th><th>APROVADOS</th><th>REPROVADOS</th>
+                <th>PENDENTES</th><th>VENCIDOS</th><th>% CONFORMIDADE</th>
+              </tr></thead>
+              <tbody id="resumoBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empresas -->
+      <div id="pagina-empresas" class="pagina">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+          <button class="btn btn-primary" onclick="abrirModalEmpresa()">+ Nova Empresa</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>E-mail</th><th>Contrato Fim</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="empresasBody"></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- Colaboradores -->
+      <div id="pagina-colaboradores" class="pagina">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+          <button class="btn btn-primary" onclick="abrirModalColaborador()">+ Novo Colaborador</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Função</th><th>Empresa</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="colaboradoresBody"></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- Documentos -->
+      <div id="pagina-documentos" class="pagina">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+          <button class="btn btn-primary" onclick="abrirModalDocumento()">+ Enviar Documento</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Tipo</th><th>Empresa</th><th>Colaborador</th><th>Arquivo</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="documentosBody"></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- Análise -->
+      <div id="pagina-analise" class="pagina">
+        <div class="card" style="margin-bottom:16px;">
+          <span style="font-size:13px;color:var(--muted);">Documentos aguardando análise: <strong id="analiseCount">0</strong></span>
+        </div>
+        <div id="analiseContainer"></div>
+      </div>
+
+      <!-- Vencimentos -->
+      <div id="pagina-vencimentos" class="pagina">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+          <div class="stat-card red"><div class="stat-value" id="vencidosCount">—</div><div class="stat-label">Vencidos</div></div>
+          <div class="stat-card orange"><div class="stat-value" id="vencendo15Count">—</div><div class="stat-label">Vencem em 15 dias</div></div>
+          <div class="stat-card" style="border-color:#eab308;"><div class="stat-value" id="vencendo30Count">—</div><div class="stat-label">Vencem em 30 dias</div></div>
+        </div>
+        <div id="vencimentosContainer"></div>
+      </div>
+
+      <!-- Tipos de Documento -->
+      <div id="pagina-tipos" class="pagina">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+          <button class="btn btn-primary" onclick="abrirModal('modalTipoDoc')">+ Novo Tipo</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Nome</th><th>Validade</th><th>Obrigatório para</th><th>Ações</th></tr></thead>
+          <tbody id="tiposBody"></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- Usuários -->
+      <div id="pagina-usuarios" class="pagina">
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-title">⏳ Aguardando Aprovação</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Data</th><th>Perfil</th><th>Ações</th></tr></thead>
+            <tbody id="usuariosPendentesBody"></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">✅ Usuários Aprovados</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Ações</th></tr></thead>
+            <tbody id="usuariosAprovadosBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ TELA PORTAL EMPRESA ══ -->
+<div id="telaEmpresa" class="tela">
+  <div class="emp-topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:22px;">🏗️</span>
+      <span style="font-weight:700;font-size:15px;">PGT — Portal da Empresa</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="empAvatar" style="width:34px;height:34px;border-radius:50%;background:#4f46e5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;">E</div>
+        <span id="empNome" style="font-size:14px;font-weight:600;color:white;"></span>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.2);" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="emp-body">
+    <div class="emp-sidebar">
+      <div class="emp-menu-item ativo" onclick="showPaginaEmp('documentos')"><span>📁</span> Meus Documentos</div>
+      <div class="emp-menu-item" onclick="showPaginaEmp('colaboradores')"><span>👥</span> Colaboradores</div>
+      <div class="emp-menu-item" onclick="showPaginaEmp('vencimentos')"><span>⏰</span> Vencimentos</div>
+    </div>
+    <div class="emp-content">
+      <div id="emp-pagina-documentos" class="emp-pagina" style="display:block;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <h2 style="font-size:20px;font-weight:700;">📁 Meus Documentos</h2>
+          <button class="btn btn-primary" onclick="abrirModal('modalEnvioEmpresa')">+ Enviar Documento</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Tipo</th><th>Colaborador</th><th>Validade</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="empDocumentosBody"></tbody>
+        </table></div></div>
+      </div>
+      <div id="emp-pagina-colaboradores" class="emp-pagina">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <h2 style="font-size:20px;font-weight:700;">👥 Colaboradores</h2>
+          <button class="btn btn-primary" onclick="abrirModal('modalColabEmpresa')">+ Novo Colaborador</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Função</th><th>Status</th></tr></thead>
+          <tbody id="empColabBody"></tbody>
+        </table></div></div>
+      </div>
+      <div id="emp-pagina-vencimentos" class="emp-pagina">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">⏰ Vencimentos</h2>
+        <div id="empVencimentosContainer"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAIS ══ -->
+
+<!-- Modal Empresa -->
+<div class="modal" id="modalEmpresa">
+  <div class="modal-box">
+    <div class="modal-header"><h2 id="tituloModalEmpresa">Nova Empresa</h2><button class="modal-close" onclick="fecharModal('modalEmpresa')">✕</button></div>
+    <input type="hidden" id="empresaId">
+    <div class="form-grid">
+      <div class="form-group"><label>Razão Social *</label><input id="empRazao" placeholder="Razão Social"></div>
+      <div class="form-group"><label>Nome Fantasia</label><input id="empFantasia" placeholder="Nome Fantasia"></div>
+      <div class="form-group"><label>CNPJ *</label><input id="empCnpj" placeholder="00.000.000/0000-00"></div>
+      <div class="form-group"><label>Responsável</label><input id="empResponsavel" placeholder="Nome do responsável"></div>
+      <div class="form-group"><label>E-mail</label><input type="email" id="empEmail" placeholder="email@empresa.com"></div>
+      <div class="form-group"><label>Telefone</label><input id="empTelefone" placeholder="(00) 00000-0000"></div>
+      <div class="form-group"><label>Início do Contrato</label><input type="date" id="empContratoInicio"></div>
+      <div class="form-group"><label>Fim do Contrato</label><input type="date" id="empContratoFim"></div>
+    </div>
+    <div class="form-group"><label>Endereço</label><input id="empEndereco" placeholder="Endereço completo"></div>
+    <div class="form-group"><label>Status</label><select id="empStatus"><option value="Ativa">Ativa</option><option value="Inativa">Inativa</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalEmpresa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEmpresa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Colaborador -->
+<div class="modal" id="modalColaborador">
+  <div class="modal-box">
+    <div class="modal-header"><h2 id="tituloModalColab">Novo Colaborador</h2><button class="modal-close" onclick="fecharModal('modalColaborador')">✕</button></div>
+    <input type="hidden" id="colabId">
+    <div class="form-grid">
+      <div class="form-group"><label>Nome *</label><input id="colabNome" placeholder="Nome completo"></div>
+      <div class="form-group"><label>CPF *</label><input id="colabCpf" placeholder="000.000.000-00"></div>
+      <div class="form-group"><label>Nascimento</label><input type="date" id="colabNascimento"></div>
+      <div class="form-group"><label>Função</label><input id="colabFuncao" placeholder="Ex: Eletricista"></div>
+      <div class="form-group"><label>Empresa *</label><select id="colabEmpresa"><option value="">Selecione</option></select></div>
+      <div class="form-group"><label>Status</label><select id="colabStatus"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalColaborador')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarColaborador()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Documento -->
+<div class="modal" id="modalDocumento">
+  <div class="modal-box">
+    <div class="modal-header"><h2>Enviar Documento</h2><button class="modal-close" onclick="fecharModal('modalDocumento')">✕</button></div>
+    <div class="form-group"><label>Tipo *</label><select id="docTipo"><option value="">Selecione</option></select></div>
+    <div class="form-group"><label>Destinado a *</label><select id="docPara" onchange="onDocParaChange()"><option value="">Selecione</option><option value="empresa">Empresa</option><option value="colaborador">Colaborador</option></select></div>
+    <div class="form-group" id="docEmpresaGrp" style="display:none;"><label>Empresa *</label><select id="docEmpresa" onchange="onDocEmpresaChange()"><option value="">Selecione</option></select></div>
+    <div class="form-group" id="docColabGrp" style="display:none;"><label>Colaborador *</label><select id="docColab"><option value="">Selecione a empresa primeiro</option></select></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Validade</label><input type="date" id="docValidade"></div>
+      <div class="form-group"><label>Arquivo * (PDF/JPG/PNG)</label><input type="file" id="docArquivo" accept=".pdf,.jpg,.jpeg,.png"></div>
+    </div>
+    <div class="form-group"><label>Observações</label><textarea id="docObs" placeholder="Opcional"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalDocumento')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarDoc" onclick="salvarDocumento()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Análise -->
+<div class="modal" id="modalAnalise">
+  <div class="modal-box largo">
+    <div class="modal-header"><h2>🔍 Análise de Documento</h2><button class="modal-close" onclick="fecharModal('modalAnalise')">✕</button></div>
+    <div id="analiseDetalhes"></div>
+    <div id="analisePreview"></div>
+    <div class="form-group"><label>Justificativa / Parecer</label><textarea id="analiseJust" placeholder="Obrigatório para reprovação"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalAnalise')">Cancelar</button>
+      <button class="btn btn-danger" onclick="reprovarDoc()">❌ Reprovar</button>
+      <button class="btn btn-success" onclick="aprovarDoc()">✅ Aprovar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview -->
+<div class="modal" id="modalPreview">
+  <div class="modal-box largo">
+    <div class="modal-header"><h2 id="previewNome">Visualizar</h2><button class="modal-close" onclick="fecharModal('modalPreview')">✕</button></div>
+    <div id="previewArea"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="fecharModal('modalPreview')">Fechar</button></div>
+  </div>
+</div>
+
+<!-- Modal Tipo Documento -->
+<div class="modal" id="modalTipoDoc">
+  <div class="modal-box">
+    <div class="modal-header"><h2>Novo Tipo de Documento</h2><button class="modal-close" onclick="fecharModal('modalTipoDoc')">✕</button></div>
+    <div class="form-group"><label>Nome *</label><input id="tipoNome" placeholder="Ex: ASO, NR-10"></div>
+    <div class="form-group"><label>Validade (dias)</label><input type="number" id="tipoValidade" placeholder="Ex: 180"></div>
+    <div class="form-group"><label>Obrigatório para *</label>
+      <select id="tipoObrig" onchange="document.getElementById('tipoFuncaoGrp').style.display=this.value==='funcao'?'block':'none'">
+        <option value="empresa">Empresa</option><option value="colaborador">Colaborador</option><option value="funcao">Função específica</option>
+      </select>
+    </div>
+    <div class="form-group" id="tipoFuncaoGrp" style="display:none;"><label>Função</label><input id="tipoFuncao" placeholder="Ex: Eletricista"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalTipoDoc')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTipo()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Envio Documento Empresa -->
+<div class="modal" id="modalEnvioEmpresa">
+  <div class="modal-box">
+    <div class="modal-header"><h2>📤 Enviar Documento</h2><button class="modal-close" onclick="fecharModal('modalEnvioEmpresa')">✕</button></div>
+    <div id="empDocErro" class="msg-erro"></div>
+    <div class="form-group"><label>Tipo *</label><select id="empDocTipo"><option value="">Selecione</option></select></div>
+    <div class="form-group"><label>Colaborador (ou vazio para documento da empresa)</label><select id="empDocColab"><option value="">— Empresa geral —</option></select></div>
+    <div class="form-group"><label>Validade</label><input type="date" id="empDocValidade"></div>
+    <div class="form-group"><label>Arquivo *</label><input type="file" id="empDocArquivo" accept=".pdf,.jpg,.jpeg,.png"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalEnvioEmpresa')">Cancelar</button>
+      <button class="btn btn-primary" id="btnEnviarDocEmp" onclick="enviarDocEmpresa()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Colaborador Empresa -->
+<div class="modal" id="modalColabEmpresa">
+  <div class="modal-box">
+    <div class="modal-header"><h2>👤 Novo Colaborador</h2><button class="modal-close" onclick="fecharModal('modalColabEmpresa')">✕</button></div>
+    <div class="form-group"><label>Nome *</label><input id="empColabNome" placeholder="Nome completo"></div>
+    <div class="form-group"><label>CPF *</label><input id="empColabCpf" placeholder="000.000.000-00"></div>
+    <div class="form-group"><label>Função</label><input id="empColabFuncao" placeholder="Ex: Eletricista"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalColabEmpresa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarColabEmpresa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Trocar Senha Empresa -->
+<div class="modal" id="modalTrocarSenha">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header"><h2>🔑 Definir Nova Senha</h2></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Primeiro acesso detectado. Defina uma senha pessoal para continuar.</p>
+    <div id="trocaSenhaErro" class="msg-erro"></div>
+    <div class="form-group"><label>Nova Senha *</label><input type="password" id="novaSenhaEmp" placeholder="Mínimo 6 caracteres"></div>
+    <div class="form-group"><label>Confirmar *</label><input type="password" id="confirmarSenhaEmp" placeholder="Repita a senha"></div>
+    <div class="modal-footer" style="justify-content:center;">
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="trocarSenhaEmpresa()">Salvar Senha</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// BANCO DE DADOS LOCAL (localStorage)
+// ══════════════════════════════════════════════
+
+function gerarId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+const DB = {
+  get(colecao) {
+    try { return JSON.parse(localStorage.getItem('pgt_' + colecao) || '[]'); }
+    catch { return []; }
+  },
+  set(colecao, dados) {
+    localStorage.setItem('pgt_' + colecao, JSON.stringify(dados));
+  },
+  add(colecao, doc) {
+    const dados = this.get(colecao);
+    const novo = { id: gerarId(), criado_em: new Date().toISOString(), ...doc };
+    dados.push(novo);
+    this.set(colecao, dados);
+    return novo;
+  },
+  update(colecao, id, campos) {
+    const dados = this.get(colecao);
+    const idx = dados.findIndex(d => d.id === id);
+    if (idx !== -1) { dados[idx] = { ...dados[idx], ...campos, atualizado_em: new Date().toISOString() }; this.set(colecao, dados); }
+  },
+  delete(colecao, id) {
+    const dados = this.get(colecao).filter(d => d.id !== id);
+    this.set(colecao, dados);
+  },
+  find(colecao, campo, valor) {
+    return this.get(colecao).filter(d => d[campo] === valor);
+  }
+};
+
+// ── DADOS INICIAIS DE DEMONSTRAÇÃO ──────────────
+function inicializarDemoSeTela() {
+  if (localStorage.getItem('pgt_inicializado')) return;
+
+  // Usuários
+  DB.set('usuarios', [
+    { id: 'admin001', nome: 'Administrador', email: 'admin@pgt.com', senha: 'admin123', perfil: 'admin', status: 'aprovado', criado_em: new Date().toISOString() },
+    { id: 'ana001', nome: 'Ana Analista', email: 'ana@pgt.com', senha: 'ana123', perfil: 'analista', status: 'aprovado', criado_em: new Date().toISOString() }
+  ]);
+
+  // Tipos de documento
+  const tipos = DB.set('tipos_documentos', [
+    { id: 'tipo1', nome: 'ASO — Atestado de Saúde Ocupacional', validade_dias: 365, obrigatorio_para: 'colaborador', criado_em: new Date().toISOString() },
+    { id: 'tipo2', nome: 'NR-10 — Elétrica', validade_dias: 730, obrigatorio_para: 'funcao', funcao: 'Eletricista', criado_em: new Date().toISOString() },
+    { id: 'tipo3', nome: 'CREA / Registro Profissional', validade_dias: null, obrigatorio_para: 'empresa', criado_em: new Date().toISOString() },
+    { id: 'tipo4', nome: 'Seguro de Responsabilidade Civil', validade_dias: 365, obrigatorio_para: 'empresa', criado_em: new Date().toISOString() }
+  ]);
+
+  // Empresas
+  DB.set('empresas', [
+    { id: 'emp1', razao_social: 'Elétrica Silva LTDA', nome_fantasia: 'Alpha', cnpj: '12.345.678/0001-95', cnpj_numerico: '12345678000195', responsavel: 'João Silva', email: 'joao@silvaeletrica.com', telefone: '(62) 99999-1111', status: 'Ativa', contrato_inicio: '2024-01-01', contrato_fim: '2026-12-31', criado_em: new Date().toISOString() },
+    { id: 'emp2', razao_social: 'Construções Beta S/A', nome_fantasia: 'Beta', cnpj: '98.765.432/0001-10', cnpj_numerico: '98765432000110', responsavel: 'Maria Souza', email: 'maria@betaconstrucoes.com', telefone: '(62) 99999-2222', status: 'Ativa', contrato_inicio: '2024-03-01', contrato_fim: '2025-12-31', criado_em: new Date().toISOString() },
+    { id: 'emp3', razao_social: 'Gamma Serviços ME', nome_fantasia: 'Gamma', cnpj: '55.444.333/0001-22', cnpj_numerico: '55444333000122', responsavel: 'Lucas Gamma', email: 'lucas@gamma.com', telefone: '(62) 99999-3333', status: 'Ativa', contrato_inicio: '2025-01-01', contrato_fim: '2027-06-30', criado_em: new Date().toISOString() }
+  ]);
+
+  // Acesso empresas
+  DB.set('empresas_acesso', [
+    { id: '12345678000195', empresa_id: 'emp1', cnpj_numerico: '12345678000195', senha_provisoria: '123456', senha_atual: '123456', precisa_trocar_senha: false },
+    { id: '98765432000110', empresa_id: 'emp2', cnpj_numerico: '98765432000110', senha_provisoria: '987654', senha_atual: null, precisa_trocar_senha: true },
+    { id: '55444333000122', empresa_id: 'emp3', cnpj_numerico: '55444333000122', senha_provisoria: '555555', senha_atual: '555555', precisa_trocar_senha: false }
+  ]);
+
+  // Colaboradores
+  DB.set('colaboradores', [
+    { id: 'col1', nome: 'Carlos Ferreira', cpf: '111.222.333-44', nascimento: '1988-05-15', funcao: 'Eletricista', empresa_id: 'emp1', status: 'Ativo', criado_em: new Date().toISOString() },
+    { id: 'col2', nome: 'Pedro Santos', cpf: '555.666.777-88', nascimento: '1992-11-20', funcao: 'Auxiliar', empresa_id: 'emp1', status: 'Ativo', criado_em: new Date().toISOString() },
+    { id: 'col3', nome: 'Fernanda Lima', cpf: '999.000.111-22', nascimento: '1985-03-08', funcao: 'Engenheira', empresa_id: 'emp2', status: 'Ativo', criado_em: new Date().toISOString() },
+    { id: 'col4', nome: 'Roberto Gamma', cpf: '444.555.666-77', nascimento: '1990-07-12', funcao: 'Técnico', empresa_id: 'emp3', status: 'Ativo', criado_em: new Date().toISOString() },
+    { id: 'col5', nome: 'Silvia Gamma', cpf: '333.444.555-66', nascimento: '1993-02-28', funcao: 'Supervisora', empresa_id: 'emp3', status: 'Ativo', criado_em: new Date().toISOString() }
+  ]);
+
+  // Datas relativas para vencimentos realistas
+  const hoje = new Date();
+  const daqui10 = new Date(hoje); daqui10.setDate(daqui10.getDate() + 10);
+  const daqui25 = new Date(hoje); daqui25.setDate(daqui25.getDate() + 25);
+  const vencido  = new Date(hoje); vencido.setDate(vencido.getDate() - 5);
+  const longe    = new Date(hoje); longe.setMonth(longe.getMonth() + 6);
+
+  DB.set('documentos', [
+    // Alpha (emp1): 4 docs — 3 aprovados, 0 reprovados, 1 pendente, 1 vencido → 75%
+    { id: 'doc1', tipo_doc_id: 'tipo1', empresa_id: 'emp1', colaborador_id: 'col1', arquivo_nome: 'ASO_Carlos.pdf', arquivo_url: null, validade: daqui10.toISOString().slice(0,10), status: 'APROVADO', observacao: '', criado_em: new Date().toISOString() },
+    { id: 'doc2', tipo_doc_id: 'tipo2', empresa_id: 'emp1', colaborador_id: 'col1', arquivo_nome: 'NR10_Carlos.pdf', arquivo_url: null, validade: longe.toISOString().slice(0,10), status: 'APROVADO', observacao: '', criado_em: new Date().toISOString() },
+    { id: 'doc6', tipo_doc_id: 'tipo4', empresa_id: 'emp1', colaborador_id: 'col2', arquivo_nome: 'Seguro_Alpha.pdf', arquivo_url: null, validade: vencido.toISOString().slice(0,10), status: 'APROVADO', observacao: '', criado_em: new Date().toISOString() },
+    { id: 'doc3', tipo_doc_id: 'tipo3', empresa_id: 'emp1', colaborador_id: null, arquivo_nome: 'CREA_Silva.pdf', arquivo_url: null, validade: daqui25.toISOString().slice(0,10), status: 'PENDENTE', observacao: '', criado_em: new Date().toISOString() },
+    // Beta (emp2): 3 docs — 0 aprovados, 1 reprovado, 2 pendentes → 0%
+    { id: 'doc4', tipo_doc_id: 'tipo1', empresa_id: 'emp2', colaborador_id: 'col3', arquivo_nome: 'ASO_Fernanda.pdf', arquivo_url: null, validade: vencido.toISOString().slice(0,10), status: 'REPROVADO', observacao: 'Documento ilegível', criado_em: new Date().toISOString() },
+    { id: 'doc5', tipo_doc_id: 'tipo4', empresa_id: 'emp2', colaborador_id: null, arquivo_nome: 'Seguro_Beta.pdf', arquivo_url: null, validade: daqui25.toISOString().slice(0,10), status: 'PENDENTE', observacao: '', criado_em: new Date().toISOString() },
+    { id: 'doc7', tipo_doc_id: 'tipo3', empresa_id: 'emp2', colaborador_id: null, arquivo_nome: 'CREA_Beta.pdf', arquivo_url: null, validade: longe.toISOString().slice(0,10), status: 'PENDENTE', observacao: '', criado_em: new Date().toISOString() },
+    // Gamma (emp3): 1 doc — 1 aprovado → 100%
+    { id: 'doc8', tipo_doc_id: 'tipo1', empresa_id: 'emp3', colaborador_id: 'col4', arquivo_nome: 'ASO_Roberto.pdf', arquivo_url: null, validade: longe.toISOString().slice(0,10), status: 'APROVADO', observacao: '', criado_em: new Date().toISOString() }
+  ]);
+
+  localStorage.setItem('pgt_inicializado', '1');
+}
+
+// ══════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════
+let usuarioAtual = null;
+let modoLogin    = '';
+let docAnaliseId = null;
+let chartDocs    = null;
+
+// ── LOADING ──────────────────────────────────
+function showLoading(txt='Carregando...') {
+  const el = document.getElementById('loadingOverlay');
+  el.querySelector('span').textContent = txt;
+  el.classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+// ── HELPERS DE TELA ──────────────────────────
+function mostrarTela(id) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+}
+function mostrarForm(id) {
+  ['frmLoginAdmin','frmLoginEmpresa','frmCriarConta'].forEach(f => {
+    const el = document.getElementById(f); if (el) el.style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'block';
+  limparMensagens();
+}
+function limparMensagens() {
+  ['msgErro','msgOk'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+}
+function mostrarErro(msg) {
+  const el = document.getElementById('msgErro');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('msgOk').style.display = 'none';
+}
+function mostrarOk(msg) {
+  const el = document.getElementById('msgOk');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('msgErro').style.display = 'none';
+}
+function abrirModal(id)  { document.getElementById(id).classList.add('ativo'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('ativo'); }
+
+// ── NAVEGAÇÃO ────────────────────────────────
+function irParaLogin(modo) {
+  modoLogin = modo;
+  document.getElementById('viewPortal').style.display = 'none';
+  document.getElementById('viewLogin').style.display  = 'block';
+  limparMensagens();
+  if (modo === 'admin') {
+    document.getElementById('loginSubtitulo').textContent = 'Analistas e Administradores';
+    document.getElementById('loginTitulo').textContent    = 'Acesso Administrativo';
+    mostrarForm('frmLoginAdmin');
+  } else {
+    document.getElementById('loginSubtitulo').textContent = 'Empresas cadastradas';
+    document.getElementById('loginTitulo').textContent    = 'Portal da Empresa';
+    mostrarForm('frmLoginEmpresa');
+  }
+}
+function voltarInicio() {
+  document.getElementById('viewPortal').style.display = 'block';
+  document.getElementById('viewLogin').style.display  = 'none';
+  limparMensagens();
+}
+
+// ══════════════════════════════════════════════
+// AUTENTICAÇÃO (local)
+// ══════════════════════════════════════════════
+function fazerLogin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const senha = document.getElementById('adminSenha').value;
+  if (!email || !senha) { mostrarErro('Preencha e-mail e senha.'); return; }
+  limparMensagens();
+  const usuarios = DB.get('usuarios');
+  const user = usuarios.find(u => u.email === email && u.senha === senha && u.status === 'aprovado');
+  if (!user) { mostrarErro('E-mail ou senha incorretos, ou acesso não aprovado.'); return; }
+  usuarioAtual = user;
+  // Salvar sessão
+  sessionStorage.setItem('pgt_sessao', JSON.stringify({ tipo: 'admin', uid: user.id }));
+  entrarNoApp();
+}
+
+function fazerLoginEmpresa() {
+  const cnpj  = document.getElementById('empCnpjLogin').value.replace(/\D/g,'').trim();
+  const senha = document.getElementById('empSenhaLogin').value.trim();
+  if (!cnpj || !senha) { mostrarErro('Preencha CNPJ e senha.'); return; }
+  limparMensagens();
+  const acessos = DB.get('empresas_acesso');
+  const acesso  = acessos.find(a => a.id === cnpj);
+  if (!acesso) { mostrarErro('CNPJ não encontrado no sistema.'); return; }
+  const senhaOk = senha === acesso.senha_provisoria || senha === acesso.senha_atual;
+  if (!senhaOk) { mostrarErro('Senha incorreta.'); return; }
+  const empresas = DB.get('empresas');
+  const emp = empresas.find(e => e.id === acesso.empresa_id);
+  usuarioAtual = { tipo: 'empresa', cnpj_numerico: cnpj, empresa_id: acesso.empresa_id, ...acesso, ...(emp||{}) };
+  sessionStorage.setItem('pgt_sessao', JSON.stringify({ tipo: 'empresa', cnpj }));
+  if (acesso.precisa_trocar_senha || !acesso.senha_atual) {
+    entrarPortalEmpresa();
+    setTimeout(() => abrirModal('modalTrocarSenha'), 400);
+  } else {
+    entrarPortalEmpresa();
+  }
+}
+
+function fazerLogout() {
+  if (!confirm('Deseja sair do sistema?')) return;
+  usuarioAtual = null;
+  sessionStorage.removeItem('pgt_sessao');
+  voltarInicio();
+  mostrarTela('telaLogin');
+}
+
+function criarConta() {
+  const nome  = document.getElementById('criarNome').value.trim();
+  const email = document.getElementById('criarEmail').value.trim();
+  const senha = document.getElementById('criarSenha').value;
+  if (!nome || !email || !senha) { mostrarErro('Preencha todos os campos.'); return; }
+  if (senha.length < 6) { mostrarErro('Senha mínima de 6 caracteres.'); return; }
+  const usuarios = DB.get('usuarios');
+  if (usuarios.find(u => u.email === email)) { mostrarErro('E-mail já cadastrado.'); return; }
+  DB.add('usuarios', { nome, email, senha, perfil: '', status: 'pendente' });
+  mostrarOk('✅ Conta criada! Aguarde a aprovação do administrador.');
+  mostrarForm('frmLoginAdmin');
+}
+
+// ── ENTRAR NO APP ─────────────────────────────
+function entrarNoApp() {
+  document.getElementById('userName').textContent   = usuarioAtual.nome || usuarioAtual.email;
+  document.getElementById('userRole').textContent   = usuarioAtual.perfil === 'admin' ? 'Administrador' : 'Analista';
+  document.getElementById('userAvatar').textContent = (usuarioAtual.nome || 'U')[0].toUpperCase();
+  document.getElementById('menuUsuarios').style.display = usuarioAtual.perfil === 'admin' ? 'flex' : 'none';
+  mostrarTela('telaApp');
+  showPagina('dashboard');
+}
+
+function entrarPortalEmpresa() {
+  const nome = usuarioAtual.nome_fantasia || usuarioAtual.razao_social || 'Empresa';
+  document.getElementById('empNome').textContent   = nome;
+  document.getElementById('empAvatar').textContent = nome[0].toUpperCase();
+  mostrarTela('telaEmpresa');
+  showPaginaEmp('documentos');
+}
+
+// ── NAVEGAÇÃO PÁGINAS ─────────────────────────
+const titulosPaginas = {
+  dashboard:'Dashboard', empresas:'Empresas', colaboradores:'Colaboradores',
+  documentos:'Documentos', analise:'Análise de Documentos',
+  vencimentos:'Vencimentos', tipos:'Tipos de Documento', usuarios:'Usuários'
+};
+const loadPaginas = {
+  dashboard: carregarDashboard, empresas: carregarEmpresas,
+  colaboradores: carregarColaboradores, documentos: carregarDocumentos,
+  analise: carregarAnalise, vencimentos: carregarVencimentos,
+  tipos: carregarTipos, usuarios: carregarUsuarios
+};
+
+function showPagina(pag) {
+  document.querySelectorAll('.pagina').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('ativo'));
+  const el = document.getElementById('pagina-' + pag);
+  if (el) el.style.display = 'block';
+  const menu = document.querySelector(`.menu-item[onclick="showPagina('${pag}')"]`);
+  if (menu) menu.classList.add('ativo');
+  document.getElementById('pageTitle').textContent = titulosPaginas[pag] || pag;
+  if (loadPaginas[pag]) loadPaginas[pag]();
+}
+
+function showPaginaEmp(pag) {
+  document.querySelectorAll('.emp-pagina').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.emp-menu-item').forEach(m => m.classList.remove('ativo'));
+  const el = document.getElementById('emp-pagina-' + pag);
+  if (el) el.style.display = 'block';
+  const menu = document.querySelector(`.emp-menu-item[onclick="showPaginaEmp('${pag}')"]`);
+  if (menu) menu.classList.add('ativo');
+  const loaders = { documentos: carregarDocEmpresa, colaboradores: carregarColabEmpresa, vencimentos: carregarVencEmpresa };
+  if (loaders[pag]) loaders[pag]();
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+// store resumo data globally for filtering
+let _resumoData = [];
+
+function carregarDashboard() {
+  const docs     = DB.get('documentos');
+  const empresas = DB.get('empresas').filter(e => e.status === 'Ativa');
+  const cols     = DB.get('colaboradores').filter(c => c.status === 'Ativo');
+  const hoje     = new Date(); hoje.setHours(0,0,0,0);
+  const d30      = new Date(hoje); d30.setDate(d30.getDate()+30);
+
+  const pend   = docs.filter(d => !d.status || d.status === 'PENDENTE').length;
+  const aprov  = docs.filter(d => d.status === 'APROVADO').length;
+  const reprov = docs.filter(d => d.status === 'REPROVADO').length;
+  const venc   = docs.filter(d => d.validade && new Date(d.validade+'T00:00:00') < hoje && d.status === 'APROVADO').length;
+  const vence30= docs.filter(d => d.validade && new Date(d.validade+'T00:00:00') <= d30 && new Date(d.validade+'T00:00:00') >= hoje).length;
+  const contratos = empresas.filter(e => e.contrato_fim && new Date(e.contrato_fim+'T00:00:00') >= hoje).length;
+
+  document.getElementById('statEmpresas').textContent      = empresas.length;
+  document.getElementById('statContratos').textContent     = contratos;
+  document.getElementById('statVence30').textContent       = vence30;
+  document.getElementById('statColaboradores').textContent = cols.length;
+  document.getElementById('statAprovados').textContent     = aprov;
+  document.getElementById('statPendentes').textContent     = pend;
+  document.getElementById('statReprovados').textContent    = reprov;
+  document.getElementById('statVencidos').textContent      = venc;
+
+  // Build per-empresa stats
+  const todasEmpresas = DB.get('empresas');
+  _resumoData = todasEmpresas.map(emp => {
+    const ed     = docs.filter(d => d.empresa_id === emp.id);
+    const ap     = ed.filter(d => d.status === 'APROVADO').length;
+    const rp     = ed.filter(d => d.status === 'REPROVADO').length;
+    const pe     = ed.filter(d => !d.status || d.status === 'PENDENTE').length;
+    const vc     = ed.filter(d => d.validade && new Date(d.validade+'T00:00:00') < hoje && d.status === 'APROVADO').length;
+    const pct    = ed.length > 0 ? Math.round((ap/ed.length)*100) : 0;
+    return { nome: emp.nome_fantasia||emp.razao_social, total: ed.length, ap, rp, pe, vc, pct };
+  });
+
+  // Rankings — Top conformes
+  const sorted = [..._resumoData].sort((a,b) => b.pct-a.pct);
+  const numColors = ['gold','silver','bronze','other','other'];
+  document.getElementById('rankingConformes').innerHTML = sorted.slice(0,5).map((e,i) => `
+    <div class="rank-item">
+      <div class="rank-num ${numColors[i]}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${e.nome}</div>
+        <div class="rank-sub">${e.ap} aprovados</div>
+      </div>
+      <div class="rank-val green">${e.pct}%</div>
+    </div>`).join('');
+
+  // Rankings — Mais reprovações
+  const sortedRep = [..._resumoData].sort((a,b) => b.rp-a.rp);
+  document.getElementById('rankingReprovacoes').innerHTML = sortedRep.slice(0,5).map((e,i) => `
+    <div class="rank-item">
+      <div class="rank-num other">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${e.nome}</div>
+        <div class="rank-sub">${e.total} documentos</div>
+      </div>
+      <div class="rank-val ${e.rp>0?'red':'green'}">${e.rp}</div>
+    </div>`).join('');
+
+  renderResumo(_resumoData);
+}
+
+function renderResumo(data) {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  document.getElementById('resumoBody').innerHTML = data.map(e => {
+    const pctClass = e.pct >= 80 ? 'green' : e.pct >= 50 ? 'orange' : 'red';
+    const barColor = e.pct >= 80 ? '#10b981' : e.pct >= 50 ? '#f59e0b' : '#ef4444';
+    return `<tr>
+      <td><strong>${e.nome}</strong></td>
+      <td>${e.total}</td>
+      <td><span class="conf-badge green">${e.ap}</span></td>
+      <td><span class="conf-badge red">${e.rp}</span></td>
+      <td><span class="conf-badge yellow">${e.pe}</span></td>
+      <td><span class="conf-badge red">${e.vc}</span></td>
+      <td>
+        <div class="conf-pct ${pctClass}">${e.pct}%</div>
+        <div class="conf-progress"><div class="conf-progress-bar" style="width:${e.pct}%;background:${barColor};"></div></div>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Nenhuma empresa cadastrada.</td></tr>`;
+}
+
+function filtrarResumo(q) {
+  const termo = q.toLowerCase();
+  const filtrado = _resumoData.filter(e => e.nome.toLowerCase().includes(termo));
+  renderResumo(filtrado);
+}
+
+// ══════════════════════════════════════════════
+// EMPRESAS
+// ══════════════════════════════════════════════
+function carregarEmpresas() {
+  const lista = DB.get('empresas');
+  document.getElementById('empresasBody').innerHTML = lista.map(e => `<tr>
+    <td><strong>${e.nome_fantasia||''}</strong><br><small style="color:var(--muted)">${e.razao_social||''}</small></td>
+    <td>${e.cnpj||''}</td><td>${e.responsavel||''}</td><td>${e.email||''}</td>
+    <td>${e.contrato_fim ? new Date(e.contrato_fim+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+    <td><span class="badge ${e.status==='Ativa'?'success':'danger'}">${e.status||'—'}</span></td>
+    <td style="display:flex;gap:6px;">
+      <button class="btn btn-sm btn-secondary" onclick="editarEmpresa('${e.id}')">Editar</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirEmpresa('${e.id}')">Excluir</button>
+    </td></tr>`).join('');
+}
+
+function abrirModalEmpresa() {
+  document.getElementById('empresaId').value = '';
+  document.getElementById('tituloModalEmpresa').textContent = 'Nova Empresa';
+  ['empRazao','empFantasia','empCnpj','empEndereco','empResponsavel','empEmail','empTelefone','empContratoInicio','empContratoFim'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('empStatus').value = 'Ativa';
+  abrirModal('modalEmpresa');
+}
+
+function editarEmpresa(id) {
+  const e = DB.get('empresas').find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('empresaId').value = id;
+  document.getElementById('tituloModalEmpresa').textContent = 'Editar Empresa';
+  document.getElementById('empRazao').value          = e.razao_social||'';
+  document.getElementById('empFantasia').value       = e.nome_fantasia||'';
+  document.getElementById('empCnpj').value           = e.cnpj||'';
+  document.getElementById('empEndereco').value       = e.endereco||'';
+  document.getElementById('empResponsavel').value    = e.responsavel||'';
+  document.getElementById('empEmail').value          = e.email||'';
+  document.getElementById('empTelefone').value       = e.telefone||'';
+  document.getElementById('empStatus').value         = e.status||'Ativa';
+  document.getElementById('empContratoInicio').value = e.contrato_inicio||'';
+  document.getElementById('empContratoFim').value    = e.contrato_fim||'';
+  abrirModal('modalEmpresa');
+}
+
+function salvarEmpresa() {
+  const id = document.getElementById('empresaId').value;
+  const data = {
+    razao_social:    document.getElementById('empRazao').value.trim(),
+    nome_fantasia:   document.getElementById('empFantasia').value.trim(),
+    cnpj:            document.getElementById('empCnpj').value.trim(),
+    endereco:        document.getElementById('empEndereco').value.trim(),
+    responsavel:     document.getElementById('empResponsavel').value.trim(),
+    email:           document.getElementById('empEmail').value.trim(),
+    telefone:        document.getElementById('empTelefone').value.trim(),
+    status:          document.getElementById('empStatus').value,
+    contrato_inicio: document.getElementById('empContratoInicio').value,
+    contrato_fim:    document.getElementById('empContratoFim').value
+  };
+  if (!data.razao_social || !data.cnpj) { alert('Preencha Razão Social e CNPJ.'); return; }
+
+  if (id) {
+    DB.update('empresas', id, data);
+    fecharModal('modalEmpresa');
+    carregarEmpresas();
+    alert('Empresa atualizada!');
+  } else {
+    const cnpjNum  = data.cnpj.replace(/\D/g,'');
+    const senhaIni = cnpjNum.slice(0,6);
+    data.cnpj_numerico = cnpjNum;
+    const nova = DB.add('empresas', data);
+    DB.add('empresas_acesso', {
+      id: cnpjNum,
+      empresa_id:           nova.id,
+      razao_social:         data.razao_social,
+      nome_fantasia:        data.nome_fantasia,
+      cnpj:                 data.cnpj,
+      cnpj_numerico:        cnpjNum,
+      senha_provisoria:     senhaIni,
+      precisa_trocar_senha: true
+    });
+    fecharModal('modalEmpresa');
+    carregarEmpresas();
+    alert(`Empresa cadastrada!\n\nCNPJ: ${data.cnpj}\nSenha inicial: ${senhaIni}\n\n(Sem Firebase — e-mail não enviado neste modo)`);
+  }
+}
+
+function excluirEmpresa(id) {
+  if (!confirm('Excluir esta empresa?')) return;
+  DB.delete('empresas', id);
+  carregarEmpresas();
+}
+
+// ══════════════════════════════════════════════
+// COLABORADORES
+// ══════════════════════════════════════════════
+function carregarColaboradores() {
+  const cols    = DB.get('colaboradores');
+  const empresas = DB.get('empresas');
+  document.getElementById('colaboradoresBody').innerHTML = cols.map(c => {
+    const emp = empresas.find(e => e.id === c.empresa_id);
+    return `<tr>
+      <td><strong>${c.nome||''}</strong></td><td>${c.cpf||''}</td><td>${c.funcao||''}</td>
+      <td>${emp ? emp.nome_fantasia||emp.razao_social : '—'}</td>
+      <td><span class="badge ${c.status==='Ativo'?'success':'danger'}">${c.status||'—'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editarColab('${c.id}')">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="excluirColab('${c.id}')">Excluir</button>
+      </td></tr>`;
+  }).join('');
+}
+
+function abrirModalColaborador() {
+  document.getElementById('colabId').value = '';
+  document.getElementById('tituloModalColab').textContent = 'Novo Colaborador';
+  ['colabNome','colabCpf','colabNascimento','colabFuncao'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('colabStatus').value = 'Ativo';
+  popularEmpresas('colabEmpresa');
+  abrirModal('modalColaborador');
+}
+
+function editarColab(id) {
+  const c = DB.get('colaboradores').find(x => x.id === id);
+  if (!c) return;
+  popularEmpresas('colabEmpresa');
+  document.getElementById('colabId').value          = id;
+  document.getElementById('tituloModalColab').textContent = 'Editar Colaborador';
+  document.getElementById('colabNome').value        = c.nome||'';
+  document.getElementById('colabCpf').value         = c.cpf||'';
+  document.getElementById('colabNascimento').value  = c.nascimento||'';
+  document.getElementById('colabFuncao').value      = c.funcao||'';
+  document.getElementById('colabStatus').value      = c.status||'Ativo';
+  setTimeout(() => { document.getElementById('colabEmpresa').value = c.empresa_id||''; }, 50);
+  abrirModal('modalColaborador');
+}
+
+function salvarColaborador() {
+  const id = document.getElementById('colabId').value;
+  const data = {
+    nome:       document.getElementById('colabNome').value.trim(),
+    cpf:        document.getElementById('colabCpf').value.trim(),
+    nascimento: document.getElementById('colabNascimento').value,
+    funcao:     document.getElementById('colabFuncao').value.trim(),
+    empresa_id: document.getElementById('colabEmpresa').value,
+    status:     document.getElementById('colabStatus').value
+  };
+  if (!data.nome || !data.cpf || !data.empresa_id) { alert('Preencha os campos obrigatórios.'); return; }
+  if (id) DB.update('colaboradores', id, data);
+  else    DB.add('colaboradores', data);
+  fecharModal('modalColaborador');
+  carregarColaboradores();
+  alert('Colaborador salvo!');
+}
+
+function excluirColab(id) {
+  if (!confirm('Excluir este colaborador?')) return;
+  DB.delete('colaboradores', id);
+  carregarColaboradores();
+}
+
+// ══════════════════════════════════════════════
+// DOCUMENTOS
+// ══════════════════════════════════════════════
+function carregarDocumentos() {
+  const docs  = DB.get('documentos');
+  const emps  = DB.get('empresas');
+  const cols  = DB.get('colaboradores');
+  const tipos = DB.get('tipos_documentos');
+  document.getElementById('documentosBody').innerHTML = docs.map(doc => {
+    const tipo = tipos.find(t => t.id === doc.tipo_doc_id);
+    const emp  = emps.find(e => e.id === doc.empresa_id);
+    const col  = doc.colaborador_id ? cols.find(c => c.id === doc.colaborador_id) : null;
+    const sc   = doc.status==='APROVADO'?'success':doc.status==='REPROVADO'?'danger':'warning';
+    return `<tr>
+      <td>${tipo?tipo.nome:'—'}</td><td>${emp?emp.nome_fantasia||emp.razao_social:'—'}</td>
+      <td>${col?col.nome:'—'}</td><td>${doc.arquivo_nome||'—'}</td>
+      <td>${doc.validade?new Date(doc.validade+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td><span class="badge ${sc}">${doc.status||'PENDENTE'}</span></td>
+      <td style="display:flex;gap:6px;">
+        ${doc.arquivo_url?`<button class="btn btn-sm btn-primary" onclick="verDoc('${doc.arquivo_url}','${doc.arquivo_nome}')">👁️</button>`:''}
+        <button class="btn btn-sm btn-danger" onclick="excluirDoc('${doc.id}')">Excluir</button>
+      </td></tr>`;
+  }).join('');
+}
+
+function abrirModalDocumento() {
+  document.getElementById('docPara').value    = '';
+  document.getElementById('docValidade').value = '';
+  document.getElementById('docObs').value     = '';
+  document.getElementById('docArquivo').value = '';
+  document.getElementById('docEmpresaGrp').style.display = 'none';
+  document.getElementById('docColabGrp').style.display   = 'none';
+  popularTipos('docTipo');
+  popularEmpresas('docEmpresa');
+  document.getElementById('docColab').innerHTML = '<option value="">Selecione a empresa primeiro</option>';
+  abrirModal('modalDocumento');
+}
+
+function onDocParaChange() {
+  const val = document.getElementById('docPara').value;
+  document.getElementById('docEmpresaGrp').style.display = val ? 'block' : 'none';
+  document.getElementById('docColabGrp').style.display   = val === 'colaborador' ? 'block' : 'none';
+}
+
+function onDocEmpresaChange() {
+  if (document.getElementById('docPara').value !== 'colaborador') return;
+  const empId = document.getElementById('docEmpresa').value;
+  const cols  = DB.find('colaboradores', 'empresa_id', empId);
+  document.getElementById('docColab').innerHTML = '<option value="">Selecione</option>' +
+    cols.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+function salvarDocumento() {
+  const tipoId  = document.getElementById('docTipo').value;
+  const para    = document.getElementById('docPara').value;
+  const empId   = document.getElementById('docEmpresa').value;
+  const colId   = document.getElementById('docColab').value;
+  const validade= document.getElementById('docValidade').value;
+  const obs     = document.getElementById('docObs').value.trim();
+  const file    = document.getElementById('docArquivo').files[0];
+  if (!tipoId || !para || !file) { alert('Preencha os campos obrigatórios e selecione um arquivo.'); return; }
+  if (para === 'empresa' && !empId) { alert('Selecione uma empresa.'); return; }
+  if (para === 'colaborador' && !colId) { alert('Selecione um colaborador.'); return; }
+
+  let finalEmpId = empId;
+  if (para === 'colaborador') {
+    const col = DB.get('colaboradores').find(c => c.id === colId);
+    if (col) finalEmpId = col.empresa_id;
+  }
+
+  // Nota: sem Cloudinary, arquivo não é enviado — apenas registra o nome
+  DB.add('documentos', {
+    tipo_doc_id: tipoId, empresa_id: finalEmpId,
+    colaborador_id: para === 'colaborador' ? colId : null,
+    arquivo_nome: file.name, arquivo_url: null,
+    validade: validade||null, observacao: obs, status: 'PENDENTE', justificativa: null
+  });
+  fecharModal('modalDocumento');
+  carregarDocumentos();
+  alert('Documento registrado! (Upload de arquivo disponível quando banco de dados for integrado)');
+}
+
+function verDoc(url, nome) {
+  const ext  = (nome||'').split('.').pop().toLowerCase();
+  const area = document.getElementById('previewArea');
+  document.getElementById('previewNome').textContent = nome;
+  if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+    area.innerHTML = `<img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px;object-fit:contain;">`;
+  } else if (ext === 'pdf') {
+    area.innerHTML = `<iframe src="${url}" style="width:100%;height:70vh;border:none;border-radius:8px;"></iframe>`;
+  } else {
+    area.innerHTML = `<div style="text-align:center;padding:40px;"><div style="font-size:48px;">📎</div><p>${nome}</p><a href="${url}" target="_blank" class="btn btn-primary" style="margin-top:16px;">⬇️ Baixar</a></div>`;
+  }
+  abrirModal('modalPreview');
+}
+
+function excluirDoc(id) {
+  if (!confirm('Excluir este documento?')) return;
+  DB.delete('documentos', id);
+  carregarDocumentos();
+}
+
+// ══════════════════════════════════════════════
+// ANÁLISE
+// ══════════════════════════════════════════════
+function carregarAnalise() {
+  const docs  = DB.get('documentos').filter(d => d.status === 'PENDENTE');
+  const emps  = DB.get('empresas');
+  const cols  = DB.get('colaboradores');
+  const tipos = DB.get('tipos_documentos');
+  document.getElementById('analiseCount').textContent = docs.length;
+  document.getElementById('analiseContainer').innerHTML = docs.length === 0
+    ? `<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:48px;">✅</div><p>Nenhum documento pendente!</p></div>`
+    : docs.map(doc => {
+        const tipo = tipos.find(t => t.id === doc.tipo_doc_id);
+        const emp  = emps.find(e => e.id === doc.empresa_id);
+        const col  = doc.colaborador_id ? cols.find(c => c.id === doc.colaborador_id) : null;
+        return `<div class="doc-item"><div class="doc-header">
+          <div style="flex:1">
+            <div class="doc-title">📄 ${tipo?tipo.nome:'—'} — ${doc.arquivo_nome||'—'}</div>
+            <div class="doc-meta"><strong>Empresa:</strong> ${emp?emp.nome_fantasia||emp.razao_social:'—'}
+              ${col?' | <strong>Colaborador:</strong> '+col.nome:''}
+              ${doc.validade?' | <strong>Validade:</strong> '+new Date(doc.validade+'T00:00:00').toLocaleDateString('pt-BR'):''}
+            </div>
+          </div>
+          <div class="doc-actions">
+            ${doc.arquivo_url?`<button class="btn btn-sm btn-secondary" onclick="verDoc('${doc.arquivo_url}','${doc.arquivo_nome}')">👁️ Ver</button>`:''}
+            <button class="btn btn-sm btn-primary" onclick="abrirAnalise('${doc.id}')">Analisar</button>
+          </div>
+        </div></div>`;
+      }).join('');
+}
+
+function abrirAnalise(id) {
+  docAnaliseId = id;
+  const doc   = DB.get('documentos').find(d => d.id === id);
+  const emps  = DB.get('empresas');
+  const tipos = DB.get('tipos_documentos');
+  const emp   = emps.find(e => e.id === doc.empresa_id);
+  const tipo  = tipos.find(t => t.id === doc.tipo_doc_id);
+  document.getElementById('analiseDetalhes').innerHTML = `
+    <div style="padding:20px;background:#f8fafc;border-radius:10px;margin-bottom:16px;">
+      <h3 style="margin-bottom:12px;">📄 ${tipo?tipo.nome:'—'}</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:14px;">
+        <div><strong>Arquivo:</strong> ${doc.arquivo_nome||'—'}</div>
+        <div><strong>Empresa:</strong> ${emp?emp.nome_fantasia||emp.razao_social:'—'}</div>
+        ${doc.validade?`<div><strong>Validade:</strong> ${new Date(doc.validade+'T00:00:00').toLocaleDateString('pt-BR')}</div>`:''}
+      </div>
+      ${doc.observacao?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0;"><strong>Obs:</strong> ${doc.observacao}</div>`:''}
+    </div>`;
+  const prev = document.getElementById('analisePreview');
+  if (doc.arquivo_url) {
+    const ext = (doc.arquivo_nome||'').split('.').pop().toLowerCase();
+    if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+      prev.innerHTML = `<img src="${doc.arquivo_url}" style="max-width:100%;max-height:400px;border-radius:8px;object-fit:contain;">`;
+    } else if (ext === 'pdf') {
+      prev.innerHTML = `<iframe src="${doc.arquivo_url}" style="width:100%;height:400px;border:none;border-radius:8px;"></iframe>`;
+    } else {
+      prev.innerHTML = `<div style="text-align:center;padding:40px;"><a href="${doc.arquivo_url}" target="_blank" class="btn btn-secondary">⬇️ Baixar para visualizar</a></div>`;
+    }
+  } else {
+    prev.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">📎 Arquivo registrado sem upload (modo local)</div>`;
+  }
+  document.getElementById('analiseJust').value = '';
+  abrirModal('modalAnalise');
+}
+
+function aprovarDoc() {
+  const just = document.getElementById('analiseJust').value.trim();
+  DB.update('documentos', docAnaliseId, { status: 'APROVADO', justificativa: just||'Aprovado', analisado_em: new Date().toISOString() });
+  fecharModal('modalAnalise');
+  carregarAnalise(); carregarDashboard();
+  alert('✅ Documento aprovado!');
+}
+
+function reprovarDoc() {
+  const just = document.getElementById('analiseJust').value.trim();
+  if (!just) { alert('Justificativa obrigatória para reprovação.'); return; }
+  DB.update('documentos', docAnaliseId, { status: 'REPROVADO', justificativa: just, analisado_em: new Date().toISOString() });
+  fecharModal('modalAnalise');
+  carregarAnalise(); carregarDashboard();
+  alert('❌ Documento reprovado.');
+}
+
+// ══════════════════════════════════════════════
+// VENCIMENTOS
+// ══════════════════════════════════════════════
+function carregarVencimentos() {
+  const docs  = DB.get('documentos').filter(d => d.status === 'APROVADO' && d.validade);
+  const emps  = DB.get('empresas');
+  const cols  = DB.get('colaboradores');
+  const tipos = DB.get('tipos_documentos');
+  const hoje  = new Date(); hoje.setHours(0,0,0,0);
+  const d15   = new Date(hoje); d15.setDate(d15.getDate()+15);
+  const d30   = new Date(hoje); d30.setDate(d30.getDate()+30);
+  const venc  = docs.filter(d => new Date(d.validade) < hoje);
+  const v15   = docs.filter(d => { const v=new Date(d.validade); return v>=hoje && v<=d15; });
+  const v30   = docs.filter(d => { const v=new Date(d.validade); return v>d15 && v<=d30; });
+  document.getElementById('vencidosCount').textContent    = venc.length;
+  document.getElementById('vencendo15Count').textContent  = v15.length;
+  document.getElementById('vencendo30Count').textContent  = v30.length;
+  const renderDoc = d => {
+    const tipo = tipos.find(t=>t.id===d.tipo_doc_id);
+    const emp  = emps.find(e=>e.id===d.empresa_id);
+    const col  = d.colaborador_id?cols.find(c=>c.id===d.colaborador_id):null;
+    const dias = Math.ceil((new Date(d.validade)-hoje)/86400000);
+    return `<div class="doc-item"><div class="doc-header"><div>
+      <div class="doc-title">📄 ${tipo?tipo.nome:'—'} — ${d.arquivo_nome||'—'}</div>
+      <div class="doc-meta"><strong>Empresa:</strong> ${emp?emp.nome_fantasia||emp.razao_social:'—'}
+        ${col?' | '+col.nome:''} | <strong>Validade:</strong> ${new Date(d.validade+'T00:00:00').toLocaleDateString('pt-BR')}
+        <span class="badge ${dias<0?'danger':'warning'}" style="margin-left:8px;">${dias<0?'Vencido há '+Math.abs(dias)+' dias':'Vence em '+dias+' dias'}</span>
+      </div></div></div></div>`;
+  };
+  const render = (lista,titulo,cor) => lista.length
+    ? `<div style="margin-bottom:24px;"><h3 style="color:${cor};margin-bottom:12px;">${titulo}</h3>${lista.map(renderDoc).join('')}</div>` : '';
+  document.getElementById('vencimentosContainer').innerHTML =
+    (render(venc,'🚨 Vencidos','#ef4444') + render(v15,'⚠️ Vencem em até 15 dias','#f59e0b') + render(v30,'⏰ Vencem em até 30 dias','#eab308')) ||
+    `<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:48px;">🎉</div><p>Nenhum vencimento nos próximos 30 dias!</p></div>`;
+}
+
+// ══════════════════════════════════════════════
+// TIPOS DE DOCUMENTO
+// ══════════════════════════════════════════════
+function carregarTipos() {
+  const lista = DB.get('tipos_documentos');
+  document.getElementById('tiposBody').innerHTML = lista.map(t => `<tr>
+    <td><strong>${t.nome}</strong></td>
+    <td>${t.validade_dias ? t.validade_dias+' dias' : 'Sem validade'}</td>
+    <td>${t.obrigatorio_para==='empresa'?'Empresa':t.obrigatorio_para==='colaborador'?'Colaborador':'Função: '+t.funcao}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="excluirTipo('${t.id}')">Excluir</button></td>
+  </tr>`).join('');
+}
+
+function salvarTipo() {
+  const nome  = document.getElementById('tipoNome').value.trim();
+  const val   = document.getElementById('tipoValidade').value;
+  const obrig = document.getElementById('tipoObrig').value;
+  const funcao= document.getElementById('tipoFuncao').value.trim();
+  if (!nome) { alert('Informe o nome.'); return; }
+  if (obrig === 'funcao' && !funcao) { alert('Informe a função.'); return; }
+  DB.add('tipos_documentos', { nome, validade_dias: val ? parseInt(val) : null, obrigatorio_para: obrig, funcao: obrig==='funcao'?funcao:null });
+  fecharModal('modalTipoDoc');
+  carregarTipos();
+}
+
+function excluirTipo(id) {
+  if (!confirm('Excluir este tipo?')) return;
+  DB.delete('tipos_documentos', id);
+  carregarTipos();
+}
+
+// ══════════════════════════════════════════════
+// USUÁRIOS
+// ══════════════════════════════════════════════
+function carregarUsuarios() {
+  const todos    = DB.get('usuarios');
+  const pendentes = todos.filter(u => u.status === 'pendente');
+  const aprovados = todos.filter(u => u.status === 'aprovado');
+
+  const badge = document.getElementById('badgeUsuarios');
+  if (badge) badge.textContent = pendentes.length > 0 ? pendentes.length : '';
+
+  const bodyPend = document.getElementById('usuariosPendentesBody');
+  if (bodyPend) {
+    bodyPend.innerHTML = pendentes.length === 0
+      ? `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Nenhum cadastro pendente.</td></tr>`
+      : pendentes.map(u => `<tr>
+          <td><strong>${u.nome}</strong></td><td>${u.email}</td>
+          <td>${u.criado_em ? new Date(u.criado_em).toLocaleDateString('pt-BR') : '—'}</td>
+          <td><select id="perfil_${u.id}" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-size:13px;width:auto;">
+            <option value="">Selecione...</option>
+            <option value="admin">Administrador</option>
+            <option value="analista">Analista</option>
+          </select></td>
+          <td style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-success" onclick="aprovarUsuario('${u.id}')">✅ Aprovar</button>
+            <button class="btn btn-sm btn-danger"  onclick="rejeitarUsuario('${u.id}')">❌ Rejeitar</button>
+          </td>
+        </tr>`).join('');
+  }
+
+  const bodyAprov = document.getElementById('usuariosAprovadosBody');
+  if (bodyAprov) {
+    bodyAprov.innerHTML = aprovados.length === 0
+      ? `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Nenhum usuário aprovado.</td></tr>`
+      : aprovados.map(u => `<tr>
+          <td><strong>${u.nome}</strong></td><td>${u.email}</td>
+          <td><span class="badge ${u.perfil==='admin'?'success':'warning'}">${u.perfil==='admin'?'Administrador':'Analista'}</span></td>
+          <td><button class="btn btn-sm btn-danger" onclick="revogarUsuario('${u.id}')">Revogar</button></td>
+        </tr>`).join('');
+  }
+}
+
+function aprovarUsuario(uid) {
+  const perfil = document.getElementById('perfil_'+uid)?.value;
+  if (!perfil) { alert('Selecione um perfil antes de aprovar.'); return; }
+  DB.update('usuarios', uid, { perfil, status: 'aprovado' });
+  alert('✅ Usuário aprovado como ' + (perfil==='admin'?'Administrador':'Analista'));
+  carregarUsuarios();
+}
+
+function rejeitarUsuario(uid) {
+  if (!confirm('Rejeitar este cadastro?')) return;
+  DB.update('usuarios', uid, { status: 'rejeitado' });
+  carregarUsuarios();
+}
+
+function revogarUsuario(uid) {
+  if (!confirm('Revogar acesso deste usuário?')) return;
+  DB.update('usuarios', uid, { status: 'pendente', perfil: '' });
+  carregarUsuarios();
+}
+
+// ══════════════════════════════════════════════
+// PORTAL EMPRESA
+// ══════════════════════════════════════════════
+function carregarDocEmpresa() {
+  const empId = usuarioAtual?.empresa_id;
+  if (!empId) return;
+  const docs  = DB.find('documentos', 'empresa_id', empId);
+  const tipos = DB.get('tipos_documentos');
+  const cols  = DB.find('colaboradores', 'empresa_id', empId);
+  document.getElementById('empDocumentosBody').innerHTML = docs.length === 0
+    ? `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Nenhum documento enviado.</td></tr>`
+    : docs.map(d => {
+        const tipo = tipos.find(t=>t.id===d.tipo_doc_id);
+        const col  = d.colaborador_id ? cols.find(c=>c.id===d.colaborador_id) : null;
+        const sc   = d.status==='APROVADO'?'success':d.status==='REPROVADO'?'danger':'warning';
+        return `<tr>
+          <td>${tipo?tipo.nome:'—'}</td><td>${col?col.nome:'Empresa'}</td>
+          <td>${d.validade?new Date(d.validade+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+          <td><span class="badge ${sc}">${d.status||'PENDENTE'}</span></td>
+          <td>${d.arquivo_url?`<button class="btn btn-sm btn-primary" onclick="verDoc('${d.arquivo_url}','${d.arquivo_nome}')">👁️ Ver</button>`:'—'}</td>
+        </tr>`;
+      }).join('');
+  popularTipos('empDocTipo');
+  document.getElementById('empDocColab').innerHTML = '<option value="">— Empresa geral —</option>' +
+    cols.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+function carregarColabEmpresa() {
+  const empId = usuarioAtual?.empresa_id;
+  if (!empId) return;
+  const cols = DB.find('colaboradores', 'empresa_id', empId);
+  document.getElementById('empColabBody').innerHTML = cols.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Nenhum colaborador cadastrado.</td></tr>`
+    : cols.map(c => `<tr>
+        <td><strong>${c.nome}</strong></td><td>${c.cpf||'—'}</td><td>${c.funcao||'—'}</td>
+        <td><span class="badge ${c.status==='Ativo'?'success':'danger'}">${c.status||'—'}</span></td>
+      </tr>`).join('');
+}
+
+function carregarVencEmpresa() {
+  const empId = usuarioAtual?.empresa_id;
+  if (!empId) return;
+  const docs  = DB.find('documentos', 'empresa_id', empId).filter(d => d.status === 'APROVADO' && d.validade);
+  const tipos = DB.get('tipos_documentos');
+  const cols  = DB.find('colaboradores', 'empresa_id', empId);
+  const hoje  = new Date(); hoje.setHours(0,0,0,0);
+  const d30   = new Date(hoje); d30.setDate(d30.getDate()+30);
+  const rel   = docs.filter(d => new Date(d.validade) <= d30);
+  document.getElementById('empVencimentosContainer').innerHTML = rel.length === 0
+    ? `<div style="text-align:center;padding:40px;color:var(--muted);">🎉 Nenhum vencimento nos próximos 30 dias!</div>`
+    : rel.map(d => {
+        const tipo = tipos.find(t=>t.id===d.tipo_doc_id);
+        const col  = d.colaborador_id?cols.find(c=>c.id===d.colaborador_id):null;
+        const dias = Math.ceil((new Date(d.validade)-hoje)/86400000);
+        return `<div class="doc-item"><div class="doc-header"><div>
+          <div class="doc-title">📄 ${tipo?tipo.nome:'—'}</div>
+          <div class="doc-meta">${col?col.nome:'Empresa'} | ${new Date(d.validade+'T00:00:00').toLocaleDateString('pt-BR')}
+            <span class="badge ${dias<0?'danger':'warning'}" style="margin-left:8px;">${dias<0?'Vencido há '+Math.abs(dias)+' dias':'Vence em '+dias+' dias'}</span>
+          </div></div></div></div>`;
+      }).join('');
+}
+
+function enviarDocEmpresa() {
+  const tipoId = document.getElementById('empDocTipo').value;
+  const colId  = document.getElementById('empDocColab').value;
+  const val    = document.getElementById('empDocValidade').value;
+  const file   = document.getElementById('empDocArquivo').files[0];
+  const err    = document.getElementById('empDocErro');
+  err.style.display = 'none';
+  if (!tipoId || !file) { err.textContent='Selecione tipo e arquivo.'; err.style.display='block'; return; }
+  DB.add('documentos', {
+    tipo_doc_id: tipoId, empresa_id: usuarioAtual.empresa_id,
+    colaborador_id: colId||null, arquivo_nome: file.name,
+    arquivo_url: null, validade: val||null, status: 'PENDENTE', justificativa: null
+  });
+  fecharModal('modalEnvioEmpresa');
+  carregarDocEmpresa();
+  alert('✅ Documento registrado!');
+}
+
+function salvarColabEmpresa() {
+  const nome  = document.getElementById('empColabNome').value.trim();
+  const cpf   = document.getElementById('empColabCpf').value.trim();
+  const funcao= document.getElementById('empColabFuncao').value.trim();
+  if (!nome || !cpf) { alert('Nome e CPF são obrigatórios.'); return; }
+  DB.add('colaboradores', { nome, cpf, funcao, empresa_id: usuarioAtual.empresa_id, status: 'Ativo' });
+  fecharModal('modalColabEmpresa');
+  carregarColabEmpresa();
+  alert('✅ Colaborador cadastrado!');
+}
+
+function trocarSenhaEmpresa() {
+  const nova = document.getElementById('novaSenhaEmp').value.trim();
+  const conf = document.getElementById('confirmarSenhaEmp').value.trim();
+  const err  = document.getElementById('trocaSenhaErro');
+  err.style.display = 'none';
+  if (!nova || nova.length < 6) { err.textContent='Senha mínima de 6 caracteres.'; err.style.display='block'; return; }
+  if (nova !== conf) { err.textContent='As senhas não coincidem.'; err.style.display='block'; return; }
+  const cnpj = usuarioAtual.cnpj_numerico;
+  DB.update('empresas_acesso', cnpj, { senha_atual: nova, precisa_trocar_senha: false });
+  usuarioAtual.senha_atual = nova;
+  usuarioAtual.precisa_trocar_senha = false;
+  fecharModal('modalTrocarSenha');
+  alert('✅ Senha alterada com sucesso!');
+}
+
+// ── HELPERS ──────────────────────────────────
+function popularEmpresas(selectId) {
+  const lista = DB.get('empresas');
+  document.getElementById(selectId).innerHTML = '<option value="">Selecione a empresa</option>' +
+    lista.map(e => `<option value="${e.id}">${e.nome_fantasia||e.razao_social}</option>`).join('');
+}
+
+function popularTipos(selectId) {
+  const lista = DB.get('tipos_documentos');
+  document.getElementById(selectId).innerHTML = '<option value="">Selecione o tipo</option>' +
+    lista.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ══════════════════════════════════════════════
+showLoading('Inicializando...');
+inicializarDemoSeTela();
+
+// Verificar sessão ativa
+const sessao = sessionStorage.getItem('pgt_sessao');
+if (sessao) {
+  try {
+    const s = JSON.parse(sessao);
+    if (s.tipo === 'admin') {
+      const user = DB.get('usuarios').find(u => u.id === s.uid && u.status === 'aprovado');
+      if (user) { usuarioAtual = user; hideLoading(); entrarNoApp(); }
+      else { hideLoading(); mostrarTela('telaLogin'); }
+    } else if (s.tipo === 'empresa') {
+      const acessos  = DB.get('empresas_acesso');
+      const acesso   = acessos.find(a => a.id === s.cnpj);
+      const empresas = DB.get('empresas');
+      const emp      = empresas.find(e => e.id === acesso?.empresa_id);
+      if (acesso && emp) {
+        usuarioAtual = { tipo: 'empresa', cnpj_numerico: s.cnpj, empresa_id: acesso.empresa_id, ...acesso, ...emp };
+        hideLoading(); entrarPortalEmpresa();
+      } else { hideLoading(); mostrarTela('telaLogin'); }
+    } else { hideLoading(); mostrarTela('telaLogin'); }
+  } catch { hideLoading(); mostrarTela('telaLogin'); }
+} else {
+  hideLoading();
+  mostrarTela('telaLogin');
+}
+</script>
+</body>
+</html>
