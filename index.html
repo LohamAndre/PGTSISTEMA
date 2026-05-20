@@ -310,8 +310,7 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
 
         <!-- Login Admin -->
         <div id="frmLoginAdmin">
-          <div class="info-demo">🧪 Modo desenvolvimento — use <strong>admin@pgt.com</strong> / <strong>admin123</strong></div>
-          <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail" placeholder="admin@pgt.com" onkeydown="if(event.key==='Enter') fazerLogin()"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="adminEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') fazerLogin()"></div>
           <div class="form-group"><label>Senha</label><input type="password" id="adminSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()"></div>
           <button class="btn btn-primary btn-full" onclick="fazerLogin()">Entrar</button>
           <div class="login-links">
@@ -321,7 +320,6 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
 
         <!-- Login Empresa -->
         <div id="frmLoginEmpresa" style="display:none;">
-          <div class="info-demo">🧪 Modo desenvolvimento — use CNPJ <strong>12345678000195</strong> / senha <strong>123456</strong></div>
           <div class="form-group"><label>CNPJ (somente números)</label><input type="text" id="empCnpjLogin" placeholder="00000000000000" maxlength="14" onkeydown="if(event.key==='Enter') fazerLoginEmpresa()"></div>
           <div class="form-group"><label>Senha</label><input type="password" id="empSenhaLogin" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLoginEmpresa()"></div>
           <button class="btn btn-primary btn-full" onclick="fazerLoginEmpresa()">Entrar no Portal</button>
@@ -359,6 +357,7 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
       <div class="nav-label">Principal</div>
       <div class="menu-item ativo" onclick="showPagina('dashboard')"><span class="icon">📊</span> Dashboard</div>
       <div class="nav-label">Cadastros</div>
+      <div class="menu-item" id="menuUnidades" style="display:none;" onclick="showPagina('unidades')"><span class="icon">🏭</span> Unidades</div>
       <div class="menu-item" onclick="showPagina('empresas')"><span class="icon">🏢</span> Empresas</div>
       <div class="menu-item" onclick="showPagina('colaboradores')"><span class="icon">👥</span> Colaboradores</div>
       <div class="menu-item" onclick="showPagina('tipos')"><span class="icon">📋</span> Tipos de Documento</div>
@@ -377,7 +376,15 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
   <div class="content-wrap">
     <div class="topbar">
       <h1 id="pageTitle">Dashboard</h1>
-      <span style="font-size:13px;color:var(--muted);">PGT v1.0 — Modo Local</span>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="filtroUnidadeWrap" style="display:none;align-items:center;gap:8px;">
+          <label style="font-size:12px;color:var(--muted);font-weight:600;">🏭 Unidade:</label>
+          <select id="filtroUnidade" onchange="onFiltroUnidadeChange()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:white;outline:none;">
+            <option value="">Todas as minhas unidades</option>
+          </select>
+        </div>
+        <span style="font-size:13px;color:var(--muted);">PGT v1.0 — Modo Local</span>
+      </div>
     </div>
     <div class="main-content">
 
@@ -484,13 +491,24 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
         </div>
       </div>
 
+      <!-- Unidades -->
+      <div id="pagina-unidades" class="pagina">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+          <button class="btn btn-primary" onclick="abrirModalUnidade()">+ Nova Unidade</button>
+        </div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>Unidade</th><th>Código</th><th>Cidade / UF</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="unidadesBody"></tbody>
+        </table></div></div>
+      </div>
+
       <!-- Empresas -->
       <div id="pagina-empresas" class="pagina">
         <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
           <button class="btn btn-primary" onclick="abrirModalEmpresa()">+ Nova Empresa</button>
         </div>
         <div class="card"><div class="table-wrap"><table>
-          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>E-mail</th><th>Contrato Fim</th><th>Status</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Responsável</th><th>E-mail</th><th>Unidades</th><th>Contrato Fim</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody id="empresasBody"></tbody>
         </table></div></div>
       </div>
@@ -558,7 +576,7 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
         <div class="card">
           <div class="card-title">✅ Usuários Aprovados</div>
           <div class="table-wrap"><table>
-            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Unidades</th><th>Ações</th></tr></thead>
             <tbody id="usuariosAprovadosBody"></tbody>
           </table></div>
         </div>
@@ -637,9 +655,51 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
     </div>
     <div class="form-group"><label>Endereço</label><input id="empEndereco" placeholder="Endereço completo"></div>
     <div class="form-group"><label>Status</label><select id="empStatus"><option value="Ativa">Ativa</option><option value="Inativa">Inativa</option></select></div>
+    <div class="form-group">
+      <label>Unidades onde presta serviço</label>
+      <div id="empUnidadesCheck" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding:10px;border:1.5px solid var(--border);border-radius:10px;min-height:44px;">
+        <span style="color:var(--muted);font-size:13px;">Nenhuma unidade cadastrada.</span>
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="fecharModal('modalEmpresa')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarEmpresa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Unidade -->
+<div class="modal" id="modalUnidade">
+  <div class="modal-box">
+    <div class="modal-header"><h2 id="tituloModalUnidade">Nova Unidade</h2><button class="modal-close" onclick="fecharModal('modalUnidade')">✕</button></div>
+    <input type="hidden" id="unidadeId">
+    <div class="form-grid">
+      <div class="form-group"><label>Nome *</label><input id="uniNome" placeholder="Ex: Filial Goiânia"></div>
+      <div class="form-group"><label>Código</label><input id="uniCodigo" placeholder="Ex: GO-01"></div>
+      <div class="form-group"><label>Cidade</label><input id="uniCidade" placeholder="Goiânia"></div>
+      <div class="form-group"><label>Estado (UF)</label><input id="uniUF" placeholder="GO" maxlength="2"></div>
+      <div class="form-group"><label>Responsável</label><input id="uniResponsavel" placeholder="Nome do responsável"></div>
+      <div class="form-group"><label>Telefone</label><input id="uniTelefone" placeholder="(00) 00000-0000"></div>
+    </div>
+    <div class="form-group"><label>Endereço</label><input id="uniEndereco" placeholder="Endereço completo"></div>
+    <div class="form-group"><label>Status</label><select id="uniStatus"><option value="Ativa">Ativa</option><option value="Inativa">Inativa</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalUnidade')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarUnidade()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Vincular Unidades ao Analista -->
+<div class="modal" id="modalVincularUnidades">
+  <div class="modal-box">
+    <div class="modal-header"><h2 id="tituloVincularUni">Vincular Unidades</h2><button class="modal-close" onclick="fecharModal('modalVincularUnidades')">✕</button></div>
+    <input type="hidden" id="vincularUserId">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Selecione as unidades que este analista pode acessar. Ele verá apenas documentos de empresas vinculadas a essas unidades.</p>
+    <div id="vincularUnidadesCheck" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modalVincularUnidades')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarVinculoUnidades()">Salvar</button>
     </div>
   </div>
 </div>
@@ -771,52 +831,139 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
   </div>
 </div>
 
-<script>
+<script type="module">
 // ══════════════════════════════════════════════
-// BANCO DE DADOS LOCAL (localStorage)
+// FIREBASE — Inicialização
+// ══════════════════════════════════════════════
+import { initializeApp }                            from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getFirestore, collection, getDocs,
+         doc, setDoc, updateDoc, deleteDoc,
+         writeBatch }                               from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDjx_2gbjyo_ERwWjtDh6qMrErprG3HMqU",
+  authDomain:        "pgtsemst.firebaseapp.com",
+  projectId:         "pgtsemst",
+  storageBucket:     "pgtsemst.firebasestorage.app",
+  messagingSenderId: "499360040617",
+  appId:             "1:499360040617:web:175f4e0eaba0617b04cbb8"
+};
+const _app = initializeApp(firebaseConfig);
+const _db  = getFirestore(_app);
+
+// ══════════════════════════════════════════════
+// BANCO DE DADOS — Cache em memória + Firestore
+// Mantém API síncrona para o restante do código
+// e persiste no Firestore em background.
 // ══════════════════════════════════════════════
 
 function gerarId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+// Cache local (memória) — idêntico ao localStorage anterior
+const _cache = {};
+
 const DB = {
   get(colecao) {
-    try { return JSON.parse(localStorage.getItem('pgt_' + colecao) || '[]'); }
-    catch { return []; }
+    return _cache[colecao] ? [..._cache[colecao]] : [];
   },
   set(colecao, dados) {
-    localStorage.setItem('pgt_' + colecao, JSON.stringify(dados));
+    _cache[colecao] = dados;
+    _persistirColecao(colecao, dados);
   },
-  add(colecao, doc) {
+  add(colecao, doc_) {
     const dados = this.get(colecao);
-    const novo = { id: gerarId(), criado_em: new Date().toISOString(), ...doc };
+    const novo = { id: gerarId(), criado_em: new Date().toISOString(), ...doc_ };
     dados.push(novo);
-    this.set(colecao, dados);
+    _cache[colecao] = dados;
+    _persistirColecao(colecao, dados);
     return novo;
   },
   update(colecao, id, campos) {
     const dados = this.get(colecao);
     const idx = dados.findIndex(d => d.id === id);
-    if (idx !== -1) { dados[idx] = { ...dados[idx], ...campos, atualizado_em: new Date().toISOString() }; this.set(colecao, dados); }
+    if (idx !== -1) {
+      dados[idx] = { ...dados[idx], ...campos, atualizado_em: new Date().toISOString() };
+      _cache[colecao] = dados;
+      _persistirColecao(colecao, dados);
+    }
   },
   delete(colecao, id) {
     const dados = this.get(colecao).filter(d => d.id !== id);
-    this.set(colecao, dados);
+    _cache[colecao] = dados;
+    _persistirColecao(colecao, dados);
   },
   find(colecao, campo, valor) {
     return this.get(colecao).filter(d => d[campo] === valor);
   }
 };
 
+// Persiste uma coleção inteira no Firestore usando batch write
+// Cada item vira um documento com ID igual a item.id
+async function _persistirColecao(colecao, dados) {
+  try {
+    const batch = writeBatch(_db);
+    const col   = collection(_db, colecao);
+
+    // Apaga os que não estão mais
+    const snap = await getDocs(col);
+    snap.forEach(d => {
+      if (!dados.find(item => item.id === d.id)) batch.delete(d.ref);
+    });
+
+    // Upsert todos os itens atuais
+    dados.forEach(item => {
+      const ref = doc(_db, colecao, item.id);
+      batch.set(ref, item);
+    });
+
+    await batch.commit();
+  } catch (e) {
+    console.warn('[Firestore] Erro ao persistir ' + colecao, e);
+  }
+}
+
+// Carrega todas as coleções do Firestore para o cache
+async function _carregarFirestore() {
+  const colecoes = [
+    'usuarios','unidades','usuario_unidades','tipos_documentos',
+    'empresas','empresa_unidades','empresas_acesso','colaboradores','documentos'
+  ];
+  for (const col of colecoes) {
+    try {
+      const snap = await getDocs(collection(_db, col));
+      _cache[col] = snap.docs.map(d => d.data());
+    } catch (e) {
+      console.warn('[Firestore] Erro ao carregar ' + col, e);
+      _cache[col] = [];
+    }
+  }
+}
+
 // ── DADOS INICIAIS DE DEMONSTRAÇÃO ──────────────
 function inicializarDemoSeTela() {
-  if (localStorage.getItem('pgt_inicializado')) return;
+  // Só inicializa se o Firestore estiver vazio (sem usuários cadastrados)
+  if (DB.get('usuarios').length > 0) return;
 
   // Usuários
   DB.set('usuarios', [
-    { id: 'admin001', nome: 'Administrador', email: 'admin@pgt.com', senha: 'admin123', perfil: 'admin', status: 'aprovado', criado_em: new Date().toISOString() },
-    { id: 'ana001', nome: 'Ana Analista', email: 'ana@pgt.com', senha: 'ana123', perfil: 'analista', status: 'aprovado', criado_em: new Date().toISOString() }
+    { id: 'admin001', nome: 'Administrador', email: 'lohamandre@fieg.com.br', senha: '730037Lo', perfil: 'admin', status: 'aprovado', criado_em: new Date().toISOString() },
+    { id: 'ana001', nome: 'Ana Analista (SP)', email: 'ana@pgt.com', senha: 'ana123', perfil: 'analista', status: 'aprovado', criado_em: new Date().toISOString() },
+    { id: 'bruno001', nome: 'Bruno Analista (GO)', email: 'bruno@pgt.com', senha: 'bruno123', perfil: 'analista', status: 'aprovado', criado_em: new Date().toISOString() }
+  ]);
+
+  // Unidades
+  DB.set('unidades', [
+    { id: 'uni1', nome: 'Filial Goiânia', codigo: 'GO-01', cidade: 'Goiânia', uf: 'GO', responsavel: 'Carlos Mendes', telefone: '(62) 3333-1111', endereco: 'Av. Goiás, 1000', status: 'Ativa', criado_em: new Date().toISOString() },
+    { id: 'uni2', nome: 'Filial São Paulo', codigo: 'SP-01', cidade: 'São Paulo', uf: 'SP', responsavel: 'Fernanda Costa', telefone: '(11) 4444-2222', endereco: 'Av. Paulista, 500', status: 'Ativa', criado_em: new Date().toISOString() },
+    { id: 'uni3', nome: 'Filial Rio de Janeiro', codigo: 'RJ-01', cidade: 'Rio de Janeiro', uf: 'RJ', responsavel: 'Roberto Lima', telefone: '(21) 5555-3333', endereco: 'Av. Rio Branco, 200', status: 'Ativa', criado_em: new Date().toISOString() }
+  ]);
+
+  // Vínculo Analista ↔ Unidades
+  DB.set('usuario_unidades', [
+    { id: 'uu1', usuario_id: 'ana001',   unidade_ids: ['uni2'] },
+    { id: 'uu2', usuario_id: 'bruno001', unidade_ids: ['uni1', 'uni3'] }
   ]);
 
   // Tipos de documento
@@ -832,6 +979,13 @@ function inicializarDemoSeTela() {
     { id: 'emp1', razao_social: 'Elétrica Silva LTDA', nome_fantasia: 'Alpha', cnpj: '12.345.678/0001-95', cnpj_numerico: '12345678000195', responsavel: 'João Silva', email: 'joao@silvaeletrica.com', telefone: '(62) 99999-1111', status: 'Ativa', contrato_inicio: '2024-01-01', contrato_fim: '2026-12-31', criado_em: new Date().toISOString() },
     { id: 'emp2', razao_social: 'Construções Beta S/A', nome_fantasia: 'Beta', cnpj: '98.765.432/0001-10', cnpj_numerico: '98765432000110', responsavel: 'Maria Souza', email: 'maria@betaconstrucoes.com', telefone: '(62) 99999-2222', status: 'Ativa', contrato_inicio: '2024-03-01', contrato_fim: '2025-12-31', criado_em: new Date().toISOString() },
     { id: 'emp3', razao_social: 'Gamma Serviços ME', nome_fantasia: 'Gamma', cnpj: '55.444.333/0001-22', cnpj_numerico: '55444333000122', responsavel: 'Lucas Gamma', email: 'lucas@gamma.com', telefone: '(62) 99999-3333', status: 'Ativa', contrato_inicio: '2025-01-01', contrato_fim: '2027-06-30', criado_em: new Date().toISOString() }
+  ]);
+
+  // Vínculo Empresa ↔ Unidades
+  DB.set('empresa_unidades', [
+    { id: 'eu1', empresa_id: 'emp1', unidade_ids: ['uni2'] },       // Alpha → SP
+    { id: 'eu2', empresa_id: 'emp2', unidade_ids: ['uni1'] },       // Beta → GO
+    { id: 'eu3', empresa_id: 'emp3', unidade_ids: ['uni1','uni3'] } // Gamma → GO + RJ
   ]);
 
   // Acesso empresas
@@ -871,7 +1025,6 @@ function inicializarDemoSeTela() {
     { id: 'doc8', tipo_doc_id: 'tipo1', empresa_id: 'emp3', colaborador_id: 'col4', arquivo_nome: 'ASO_Roberto.pdf', arquivo_url: null, validade: longe.toISOString().slice(0,10), status: 'APROVADO', observacao: '', criado_em: new Date().toISOString() }
   ]);
 
-  localStorage.setItem('pgt_inicializado', '1');
 }
 
 // ══════════════════════════════════════════════
@@ -1010,9 +1163,52 @@ function entrarNoApp() {
   document.getElementById('userName').textContent   = usuarioAtual.nome || usuarioAtual.email;
   document.getElementById('userRole').textContent   = usuarioAtual.perfil === 'admin' ? 'Administrador' : 'Analista';
   document.getElementById('userAvatar').textContent = (usuarioAtual.nome || 'U')[0].toUpperCase();
-  document.getElementById('menuUsuarios').style.display = usuarioAtual.perfil === 'admin' ? 'flex' : 'none';
+  const isAdmin = usuarioAtual.perfil === 'admin';
+  document.getElementById('menuUsuarios').style.display = isAdmin ? 'flex' : 'none';
+  document.getElementById('menuUnidades').style.display  = isAdmin ? 'flex' : 'none';
+  // Filtro de unidade para analistas
+  const filtroWrap = document.getElementById('filtroUnidadeWrap');
+  if (!isAdmin) {
+    filtroWrap.style.display = 'flex';
+    popularFiltroUnidade();
+  } else {
+    filtroWrap.style.display = 'none';
+  }
   mostrarTela('telaApp');
   showPagina('dashboard');
+}
+
+function popularFiltroUnidade() {
+  const sel = document.getElementById('filtroUnidade');
+  const unidades = DB.get('unidades');
+  const vinculo = DB.get('usuario_unidades').find(v => v.usuario_id === usuarioAtual.id);
+  const minhasIds = vinculo ? vinculo.unidade_ids : [];
+  const minhas = unidades.filter(u => minhasIds.includes(u.id));
+  sel.innerHTML = '<option value="">Todas as minhas unidades</option>' +
+    minhas.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+}
+
+function onFiltroUnidadeChange() {
+  // Recarrega a página atual com novo filtro
+  const pagAtual = document.querySelector('.pagina[style*="block"]');
+  const id = pagAtual ? pagAtual.id.replace('pagina-','') : 'dashboard';
+  if (loadPaginas[id]) loadPaginas[id]();
+}
+
+// Helper: retorna array de empresa_ids visíveis para o usuário logado
+function getEmpresasVisiveis() {
+  const isAdmin = usuarioAtual?.perfil === 'admin';
+  if (isAdmin) return DB.get('empresas').map(e => e.id);
+  const vinculo = DB.get('usuario_unidades').find(v => v.usuario_id === usuarioAtual.id);
+  const minhasIds = vinculo ? vinculo.unidade_ids : [];
+  // Filtro adicional por unidade selecionada no topbar
+  const sel = document.getElementById('filtroUnidade');
+  const uniSel = sel ? sel.value : '';
+  const filtroIds = uniSel ? [uniSel] : minhasIds;
+  const empUni = DB.get('empresa_unidades');
+  return empUni
+    .filter(eu => eu.unidade_ids.some(uid => filtroIds.includes(uid)))
+    .map(eu => eu.empresa_id);
 }
 
 function entrarPortalEmpresa() {
@@ -1025,12 +1221,12 @@ function entrarPortalEmpresa() {
 
 // ── NAVEGAÇÃO PÁGINAS ─────────────────────────
 const titulosPaginas = {
-  dashboard:'Dashboard', empresas:'Empresas', colaboradores:'Colaboradores',
+  dashboard:'Dashboard', unidades:'Unidades', empresas:'Empresas', colaboradores:'Colaboradores',
   documentos:'Documentos', analise:'Análise de Documentos',
   vencimentos:'Vencimentos', tipos:'Tipos de Documento', usuarios:'Usuários'
 };
 const loadPaginas = {
-  dashboard: carregarDashboard, empresas: carregarEmpresas,
+  dashboard: carregarDashboard, unidades: carregarUnidades, empresas: carregarEmpresas,
   colaboradores: carregarColaboradores, documentos: carregarDocumentos,
   analise: carregarAnalise, vencimentos: carregarVencimentos,
   tipos: carregarTipos, usuarios: carregarUsuarios
@@ -1065,9 +1261,10 @@ function showPaginaEmp(pag) {
 let _resumoData = [];
 
 function carregarDashboard() {
-  const docs     = DB.get('documentos');
-  const empresas = DB.get('empresas').filter(e => e.status === 'Ativa');
-  const cols     = DB.get('colaboradores').filter(c => c.status === 'Ativo');
+  const empIds   = getEmpresasVisiveis();
+  const docs     = DB.get('documentos').filter(d => empIds.includes(d.empresa_id));
+  const empresas = DB.get('empresas').filter(e => e.status === 'Ativa' && empIds.includes(e.id));
+  const cols     = DB.get('colaboradores').filter(c => c.status === 'Ativo' && empIds.includes(c.empresa_id));
   const hoje     = new Date(); hoje.setHours(0,0,0,0);
   const d30      = new Date(hoje); d30.setDate(d30.getDate()+30);
 
@@ -1088,7 +1285,7 @@ function carregarDashboard() {
   document.getElementById('statVencidos').textContent      = venc;
 
   // Build per-empresa stats
-  const todasEmpresas = DB.get('empresas');
+  const todasEmpresas = DB.get('empresas').filter(e => empIds.includes(e.id));
   _resumoData = todasEmpresas.map(emp => {
     const ed     = docs.filter(d => d.empresa_id === emp.id);
     const ap     = ed.filter(d => d.status === 'APROVADO').length;
@@ -1157,16 +1354,41 @@ function filtrarResumo(q) {
 // EMPRESAS
 // ══════════════════════════════════════════════
 function carregarEmpresas() {
-  const lista = DB.get('empresas');
-  document.getElementById('empresasBody').innerHTML = lista.map(e => `<tr>
-    <td><strong>${e.nome_fantasia||''}</strong><br><small style="color:var(--muted)">${e.razao_social||''}</small></td>
-    <td>${e.cnpj||''}</td><td>${e.responsavel||''}</td><td>${e.email||''}</td>
-    <td>${e.contrato_fim ? new Date(e.contrato_fim+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
-    <td><span class="badge ${e.status==='Ativa'?'success':'danger'}">${e.status||'—'}</span></td>
-    <td style="display:flex;gap:6px;">
-      <button class="btn btn-sm btn-secondary" onclick="editarEmpresa('${e.id}')">Editar</button>
-      <button class="btn btn-sm btn-danger" onclick="excluirEmpresa('${e.id}')">Excluir</button>
-    </td></tr>`).join('');
+  const empIds  = getEmpresasVisiveis();
+  const isAdmin = usuarioAtual?.perfil === 'admin';
+  const lista   = isAdmin ? DB.get('empresas') : DB.get('empresas').filter(e => empIds.includes(e.id));
+  const unidades = DB.get('unidades');
+  const empUni   = DB.get('empresa_unidades');
+  document.getElementById('empresasBody').innerHTML = lista.map(e => {
+    const vinculo = empUni.find(eu => eu.empresa_id === e.id);
+    const nomeUnis = vinculo
+      ? vinculo.unidade_ids.map(uid => { const u = unidades.find(x => x.id === uid); return u ? u.nome : uid; }).join(', ')
+      : '—';
+    return `<tr>
+      <td><strong>${e.nome_fantasia||''}</strong><br><small style="color:var(--muted)">${e.razao_social||''}</small></td>
+      <td>${e.cnpj||''}</td><td>${e.responsavel||''}</td><td>${e.email||''}</td>
+      <td style="max-width:180px;font-size:12px;color:var(--muted);">${nomeUnis}</td>
+      <td>${e.contrato_fim ? new Date(e.contrato_fim+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
+      <td><span class="badge ${e.status==='Ativa'?'success':'danger'}">${e.status||'—'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-secondary" onclick="editarEmpresa('${e.id}')">Editar</button>
+        ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="excluirEmpresa('${e.id}')">Excluir</button>`:''}
+      </td></tr>`;
+  }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Nenhuma empresa encontrada.</td></tr>`;
+}
+
+function popularUnidadesCheck(selecionadas = []) {
+  const unidades = DB.get('unidades').filter(u => u.status === 'Ativa');
+  const container = document.getElementById('empUnidadesCheck');
+  if (!unidades.length) {
+    container.innerHTML = '<span style="color:var(--muted);font-size:13px;">Nenhuma unidade cadastrada. Cadastre unidades primeiro.</span>';
+    return;
+  }
+  container.innerHTML = unidades.map(u => `
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:#f8fafc;cursor:pointer;font-size:13px;">
+      <input type="checkbox" value="${u.id}" ${selecionadas.includes(u.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--primary);">
+      <span><strong>${u.nome}</strong> <span style="color:var(--muted);">${u.cidade||''} ${u.uf||''}</span></span>
+    </label>`).join('');
 }
 
 function abrirModalEmpresa() {
@@ -1176,12 +1398,15 @@ function abrirModalEmpresa() {
     const el = document.getElementById(id); if(el) el.value = '';
   });
   document.getElementById('empStatus').value = 'Ativa';
+  popularUnidadesCheck([]);
   abrirModal('modalEmpresa');
 }
 
 function editarEmpresa(id) {
   const e = DB.get('empresas').find(x => x.id === id);
   if (!e) return;
+  const vinculo = DB.get('empresa_unidades').find(eu => eu.empresa_id === id);
+  const selecionadas = vinculo ? vinculo.unidade_ids : [];
   document.getElementById('empresaId').value = id;
   document.getElementById('tituloModalEmpresa').textContent = 'Editar Empresa';
   document.getElementById('empRazao').value          = e.razao_social||'';
@@ -1194,6 +1419,7 @@ function editarEmpresa(id) {
   document.getElementById('empStatus').value         = e.status||'Ativa';
   document.getElementById('empContratoInicio').value = e.contrato_inicio||'';
   document.getElementById('empContratoFim').value    = e.contrato_fim||'';
+  popularUnidadesCheck(selecionadas);
   abrirModal('modalEmpresa');
 }
 
@@ -1213,8 +1439,17 @@ function salvarEmpresa() {
   };
   if (!data.razao_social || !data.cnpj) { alert('Preencha Razão Social e CNPJ.'); return; }
 
+  // Coletar unidades selecionadas
+  const checkboxes = document.querySelectorAll('#empUnidadesCheck input[type=checkbox]:checked');
+  const unidadeSelecionadas = Array.from(checkboxes).map(cb => cb.value);
+
   if (id) {
     DB.update('empresas', id, data);
+    // Atualizar vínculo
+    const empUni = DB.get('empresa_unidades');
+    const idx    = empUni.findIndex(eu => eu.empresa_id === id);
+    if (idx !== -1) { empUni[idx].unidade_ids = unidadeSelecionadas; DB.set('empresa_unidades', empUni); }
+    else            { DB.add('empresa_unidades', { empresa_id: id, unidade_ids: unidadeSelecionadas }); }
     fecharModal('modalEmpresa');
     carregarEmpresas();
     alert('Empresa atualizada!');
@@ -1223,19 +1458,16 @@ function salvarEmpresa() {
     const senhaIni = cnpjNum.slice(0,6);
     data.cnpj_numerico = cnpjNum;
     const nova = DB.add('empresas', data);
+    DB.add('empresa_unidades', { empresa_id: nova.id, unidade_ids: unidadeSelecionadas });
     DB.add('empresas_acesso', {
-      id: cnpjNum,
-      empresa_id:           nova.id,
-      razao_social:         data.razao_social,
-      nome_fantasia:        data.nome_fantasia,
-      cnpj:                 data.cnpj,
-      cnpj_numerico:        cnpjNum,
-      senha_provisoria:     senhaIni,
-      precisa_trocar_senha: true
+      id: cnpjNum, empresa_id: nova.id,
+      razao_social: data.razao_social, nome_fantasia: data.nome_fantasia,
+      cnpj: data.cnpj, cnpj_numerico: cnpjNum,
+      senha_provisoria: senhaIni, precisa_trocar_senha: true
     });
     fecharModal('modalEmpresa');
     carregarEmpresas();
-    alert(`Empresa cadastrada!\n\nCNPJ: ${data.cnpj}\nSenha inicial: ${senhaIni}\n\n(Sem Firebase — e-mail não enviado neste modo)`);
+    alert(`Empresa cadastrada!\n\nCNPJ: ${data.cnpj}\nSenha inicial: ${senhaIni}\n\n(Upload de arquivo disponível após integração com banco de dados)`);
   }
 }
 
@@ -1246,10 +1478,87 @@ function excluirEmpresa(id) {
 }
 
 // ══════════════════════════════════════════════
+// UNIDADES
+// ══════════════════════════════════════════════
+function carregarUnidades() {
+  const lista = DB.get('unidades');
+  document.getElementById('unidadesBody').innerHTML = lista.length === 0
+    ? `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Nenhuma unidade cadastrada.</td></tr>`
+    : lista.map(u => `<tr>
+        <td><strong>${u.nome||''}</strong></td>
+        <td><span style="font-family:monospace;font-size:12px;background:#f1f5f9;padding:2px 8px;border-radius:6px;">${u.codigo||'—'}</span></td>
+        <td>${u.cidade||'—'}${u.uf?' / '+u.uf:''}</td>
+        <td>${u.responsavel||'—'}</td>
+        <td><span class="badge ${u.status==='Ativa'?'success':'danger'}">${u.status||'—'}</span></td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-secondary" onclick="editarUnidade('${u.id}')">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="excluirUnidade('${u.id}')">Excluir</button>
+        </td></tr>`).join('');
+}
+
+function abrirModalUnidade() {
+  document.getElementById('unidadeId').value = '';
+  document.getElementById('tituloModalUnidade').textContent = 'Nova Unidade';
+  ['uniNome','uniCodigo','uniCidade','uniUF','uniResponsavel','uniTelefone','uniEndereco'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('uniStatus').value = 'Ativa';
+  abrirModal('modalUnidade');
+}
+
+function editarUnidade(id) {
+  const u = DB.get('unidades').find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('unidadeId').value          = id;
+  document.getElementById('tituloModalUnidade').textContent = 'Editar Unidade';
+  document.getElementById('uniNome').value        = u.nome||'';
+  document.getElementById('uniCodigo').value      = u.codigo||'';
+  document.getElementById('uniCidade').value      = u.cidade||'';
+  document.getElementById('uniUF').value          = u.uf||'';
+  document.getElementById('uniResponsavel').value = u.responsavel||'';
+  document.getElementById('uniTelefone').value    = u.telefone||'';
+  document.getElementById('uniEndereco').value    = u.endereco||'';
+  document.getElementById('uniStatus').value      = u.status||'Ativa';
+  abrirModal('modalUnidade');
+}
+
+function salvarUnidade() {
+  const id = document.getElementById('unidadeId').value;
+  const data = {
+    nome:        document.getElementById('uniNome').value.trim(),
+    codigo:      document.getElementById('uniCodigo').value.trim(),
+    cidade:      document.getElementById('uniCidade').value.trim(),
+    uf:          document.getElementById('uniUF').value.trim().toUpperCase(),
+    responsavel: document.getElementById('uniResponsavel').value.trim(),
+    telefone:    document.getElementById('uniTelefone').value.trim(),
+    endereco:    document.getElementById('uniEndereco').value.trim(),
+    status:      document.getElementById('uniStatus').value
+  };
+  if (!data.nome) { alert('Informe o nome da unidade.'); return; }
+  if (id) DB.update('unidades', id, data);
+  else    DB.add('unidades', data);
+  fecharModal('modalUnidade');
+  carregarUnidades();
+}
+
+function excluirUnidade(id) {
+  if (!confirm('Excluir esta unidade? Os vínculos com empresas e analistas serão removidos.')) return;
+  DB.delete('unidades', id);
+  // Remove unidade dos vínculos empresa_unidades
+  const empUni = DB.get('empresa_unidades').map(eu => ({ ...eu, unidade_ids: eu.unidade_ids.filter(uid => uid !== id) }));
+  DB.set('empresa_unidades', empUni);
+  // Remove unidade dos vínculos usuario_unidades
+  const usuUni = DB.get('usuario_unidades').map(uu => ({ ...uu, unidade_ids: uu.unidade_ids.filter(uid => uid !== id) }));
+  DB.set('usuario_unidades', usuUni);
+  carregarUnidades();
+}
+
+// ══════════════════════════════════════════════
 // COLABORADORES
 // ══════════════════════════════════════════════
 function carregarColaboradores() {
-  const cols    = DB.get('colaboradores');
+  const empIds  = getEmpresasVisiveis();
+  const cols    = DB.get('colaboradores').filter(c => empIds.includes(c.empresa_id));
   const empresas = DB.get('empresas');
   document.getElementById('colaboradoresBody').innerHTML = cols.map(c => {
     const emp = empresas.find(e => e.id === c.empresa_id);
@@ -1316,11 +1625,14 @@ function excluirColab(id) {
 // DOCUMENTOS
 // ══════════════════════════════════════════════
 function carregarDocumentos() {
-  const docs  = DB.get('documentos');
+  const empIds = getEmpresasVisiveis();
+  const docs  = DB.get('documentos').filter(d => empIds.includes(d.empresa_id));
   const emps  = DB.get('empresas');
   const cols  = DB.get('colaboradores');
   const tipos = DB.get('tipos_documentos');
-  document.getElementById('documentosBody').innerHTML = docs.map(doc => {
+  document.getElementById('documentosBody').innerHTML = docs.length === 0
+    ? `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">Nenhum documento encontrado.</td></tr>`
+    : docs.map(doc => {
     const tipo = tipos.find(t => t.id === doc.tipo_doc_id);
     const emp  = emps.find(e => e.id === doc.empresa_id);
     const col  = doc.colaborador_id ? cols.find(c => c.id === doc.colaborador_id) : null;
@@ -1418,7 +1730,8 @@ function excluirDoc(id) {
 // ANÁLISE
 // ══════════════════════════════════════════════
 function carregarAnalise() {
-  const docs  = DB.get('documentos').filter(d => d.status === 'PENDENTE');
+  const empIds = getEmpresasVisiveis();
+  const docs  = DB.get('documentos').filter(d => (!d.status || d.status === 'PENDENTE') && empIds.includes(d.empresa_id));
   const emps  = DB.get('empresas');
   const cols  = DB.get('colaboradores');
   const tipos = DB.get('tipos_documentos');
@@ -1500,7 +1813,8 @@ function reprovarDoc() {
 // VENCIMENTOS
 // ══════════════════════════════════════════════
 function carregarVencimentos() {
-  const docs  = DB.get('documentos').filter(d => d.status === 'APROVADO' && d.validade);
+  const empIds = getEmpresasVisiveis();
+  const docs  = DB.get('documentos').filter(d => d.status === 'APROVADO' && d.validade && empIds.includes(d.empresa_id));
   const emps  = DB.get('empresas');
   const cols  = DB.get('colaboradores');
   const tipos = DB.get('tipos_documentos');
@@ -1570,6 +1884,8 @@ function carregarUsuarios() {
   const todos    = DB.get('usuarios');
   const pendentes = todos.filter(u => u.status === 'pendente');
   const aprovados = todos.filter(u => u.status === 'aprovado');
+  const unidades  = DB.get('unidades');
+  const usuUni    = DB.get('usuario_unidades');
 
   const badge = document.getElementById('badgeUsuarios');
   if (badge) badge.textContent = pendentes.length > 0 ? pendentes.length : '';
@@ -1596,12 +1912,22 @@ function carregarUsuarios() {
   const bodyAprov = document.getElementById('usuariosAprovadosBody');
   if (bodyAprov) {
     bodyAprov.innerHTML = aprovados.length === 0
-      ? `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Nenhum usuário aprovado.</td></tr>`
-      : aprovados.map(u => `<tr>
-          <td><strong>${u.nome}</strong></td><td>${u.email}</td>
-          <td><span class="badge ${u.perfil==='admin'?'success':'warning'}">${u.perfil==='admin'?'Administrador':'Analista'}</span></td>
-          <td><button class="btn btn-sm btn-danger" onclick="revogarUsuario('${u.id}')">Revogar</button></td>
-        </tr>`).join('');
+      ? `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Nenhum usuário aprovado.</td></tr>`
+      : aprovados.map(u => {
+          const vinculo = usuUni.find(v => v.usuario_id === u.id);
+          const nomeUnis = vinculo && vinculo.unidade_ids.length
+            ? vinculo.unidade_ids.map(uid => { const un = unidades.find(x => x.id === uid); return un ? `<span style="display:inline-block;padding:2px 8px;border-radius:12px;background:#eff6ff;color:#3b82f6;font-size:11px;font-weight:600;margin:1px;">${un.nome}</span>`:''; }).join('')
+            : `<span style="color:var(--muted);font-size:12px;">Nenhuma</span>`;
+          return `<tr>
+            <td><strong>${u.nome}</strong></td><td>${u.email}</td>
+            <td><span class="badge ${u.perfil==='admin'?'success':'warning'}">${u.perfil==='admin'?'Administrador':'Analista'}</span></td>
+            <td>${u.perfil==='analista' ? nomeUnis : '<span style="color:var(--muted);font-size:12px;">—</span>'}</td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${u.perfil==='analista'?`<button class="btn btn-sm btn-secondary" onclick="abrirVincularUnidades('${u.id}','${u.nome}')">🏭 Unidades</button>`:''}
+              <button class="btn btn-sm btn-danger" onclick="revogarUsuario('${u.id}')">Revogar</button>
+            </td>
+          </tr>`;
+        }).join('');
   }
 }
 
@@ -1623,6 +1949,39 @@ function revogarUsuario(uid) {
   if (!confirm('Revogar acesso deste usuário?')) return;
   DB.update('usuarios', uid, { status: 'pendente', perfil: '' });
   carregarUsuarios();
+}
+
+function abrirVincularUnidades(uid, nome) {
+  document.getElementById('vincularUserId').value = uid;
+  document.getElementById('tituloVincularUni').textContent = `🏭 Unidades — ${nome}`;
+  const unidades = DB.get('unidades').filter(u => u.status === 'Ativa');
+  const vinculo  = DB.get('usuario_unidades').find(v => v.usuario_id === uid);
+  const selecionadas = vinculo ? vinculo.unidade_ids : [];
+  document.getElementById('vincularUnidadesCheck').innerHTML = unidades.length === 0
+    ? '<p style="color:var(--muted);font-size:13px;">Nenhuma unidade ativa cadastrada.</p>'
+    : unidades.map(u => `
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:#f8fafc;border:1.5px solid ${selecionadas.includes(u.id)?'var(--primary)':'var(--border)'};cursor:pointer;">
+          <input type="checkbox" value="${u.id}" ${selecionadas.includes(u.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--primary);"
+            onchange="this.closest('label').style.borderColor=this.checked?'var(--primary)':'var(--border)'">
+          <div>
+            <div style="font-weight:600;font-size:13px;">${u.nome}</div>
+            <div style="font-size:12px;color:var(--muted);">${u.codigo||''} ${u.cidade||''} ${u.uf||''}</div>
+          </div>
+        </label>`).join('');
+  abrirModal('modalVincularUnidades');
+}
+
+function salvarVinculoUnidades() {
+  const uid  = document.getElementById('vincularUserId').value;
+  const checks = document.querySelectorAll('#vincularUnidadesCheck input[type=checkbox]:checked');
+  const ids  = Array.from(checks).map(cb => cb.value);
+  const usuUni = DB.get('usuario_unidades');
+  const idx    = usuUni.findIndex(v => v.usuario_id === uid);
+  if (idx !== -1) { usuUni[idx].unidade_ids = ids; DB.set('usuario_unidades', usuUni); }
+  else            { DB.add('usuario_unidades', { usuario_id: uid, unidade_ids: ids }); }
+  fecharModal('modalVincularUnidades');
+  carregarUsuarios();
+  alert(`✅ Unidades vinculadas: ${ids.length} unidade(s)`);
 }
 
 // ══════════════════════════════════════════════
@@ -1745,35 +2104,63 @@ function popularTipos(selectId) {
 }
 
 // ══════════════════════════════════════════════
-// INICIALIZAÇÃO
+// EXPOSIÇÃO GLOBAL (necessário por ser type="module")
 // ══════════════════════════════════════════════
-showLoading('Inicializando...');
-inicializarDemoSeTela();
+Object.assign(window, {
+  irParaLogin, voltarInicio, fazerLogin, fazerLoginEmpresa, fazerLogout, criarConta, mostrarForm,
+  showPagina, showPaginaEmp,
+  abrirModalEmpresa, editarEmpresa, salvarEmpresa, excluirEmpresa,
+  abrirModalUnidade, editarUnidade, salvarUnidade, excluirUnidade,
+  abrirModalColaborador, editarColab, salvarColaborador, excluirColab,
+  abrirModalDocumento, onDocParaChange, onDocEmpresaChange, salvarDocumento, excluirDoc, verDoc,
+  abrirAnalise, aprovarDoc, reprovarDoc,
+  carregarDashboard, filtrarResumo,
+  salvarTipo, excluirTipo,
+  carregarUsuarios, aprovarUsuario, rejeitarUsuario, revogarUsuario,
+  abrirVincularUnidades, salvarVinculoUnidades,
+  carregarDocEmpresa, enviarDocEmpresa, carregarColabEmpresa, salvarColabEmpresa,
+  carregarVencEmpresa, trocarSenhaEmpresa,
+  abrirModal, fecharModal,
+  onFiltroUnidadeChange,
+});
 
-// Verificar sessão ativa
-const sessao = sessionStorage.getItem('pgt_sessao');
-if (sessao) {
-  try {
-    const s = JSON.parse(sessao);
-    if (s.tipo === 'admin') {
-      const user = DB.get('usuarios').find(u => u.id === s.uid && u.status === 'aprovado');
-      if (user) { usuarioAtual = user; hideLoading(); entrarNoApp(); }
-      else { hideLoading(); mostrarTela('telaLogin'); }
-    } else if (s.tipo === 'empresa') {
-      const acessos  = DB.get('empresas_acesso');
-      const acesso   = acessos.find(a => a.id === s.cnpj);
-      const empresas = DB.get('empresas');
-      const emp      = empresas.find(e => e.id === acesso?.empresa_id);
-      if (acesso && emp) {
-        usuarioAtual = { tipo: 'empresa', cnpj_numerico: s.cnpj, empresa_id: acesso.empresa_id, ...acesso, ...emp };
-        hideLoading(); entrarPortalEmpresa();
+// ══════════════════════════════════════════════
+// INICIALIZAÇÃO ASSÍNCRONA
+// ══════════════════════════════════════════════
+(async () => {
+  showLoading('Conectando ao banco de dados...');
+
+  // 1. Carrega todos os dados do Firestore para o cache em memória
+  await _carregarFirestore();
+
+  // 2. Se o banco estiver vazio, popula com dados de demonstração
+  inicializarDemoSeTela();
+
+  // 3. Verificar sessão ativa (sessionStorage ainda é usado para sessão)
+  const sessao = sessionStorage.getItem('pgt_sessao');
+  if (sessao) {
+    try {
+      const s = JSON.parse(sessao);
+      if (s.tipo === 'admin') {
+        const user = DB.get('usuarios').find(u => u.id === s.uid && u.status === 'aprovado');
+        if (user) { usuarioAtual = user; hideLoading(); entrarNoApp(); }
+        else { hideLoading(); mostrarTela('telaLogin'); }
+      } else if (s.tipo === 'empresa') {
+        const acessos  = DB.get('empresas_acesso');
+        const acesso   = acessos.find(a => a.id === s.cnpj);
+        const empresas = DB.get('empresas');
+        const emp      = empresas.find(e => e.id === acesso?.empresa_id);
+        if (acesso && emp) {
+          usuarioAtual = { tipo: 'empresa', cnpj_numerico: s.cnpj, empresa_id: acesso.empresa_id, ...acesso, ...emp };
+          hideLoading(); entrarPortalEmpresa();
+        } else { hideLoading(); mostrarTela('telaLogin'); }
       } else { hideLoading(); mostrarTela('telaLogin'); }
-    } else { hideLoading(); mostrarTela('telaLogin'); }
-  } catch { hideLoading(); mostrarTela('telaLogin'); }
-} else {
-  hideLoading();
-  mostrarTela('telaLogin');
-}
+    } catch { hideLoading(); mostrarTela('telaLogin'); }
+  } else {
+    hideLoading();
+    mostrarTela('telaLogin');
+  }
+})();
 </script>
 </body>
 </html>
