@@ -94,7 +94,9 @@ textarea{resize:vertical;min-height:80px;}
 
 #telaApp{flex-direction:row;min-height:100vh;}
 .sidebar{width:260px;min-height:100vh;background:var(--sidebar);color:white;display:flex;
-  flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
+  /* No desktop: sticky. No mobile: sobrescrito para fixed via media query */
+}
 .sidebar-header{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
 .sidebar-header h2{font-size:18px;font-weight:800;} .sidebar-header small{color:#64748b;font-size:11px;}
 .user-card{margin:14px;padding:12px;background:rgba(255,255,255,.06);border-radius:12px;
@@ -116,7 +118,7 @@ textarea{resize:vertical;min-height:80px;}
 .btn-logout:hover{background:#ef4444;color:white;}
 .content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .topbar{background:white;padding:16px 32px;border-bottom:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:12px;}
 .topbar h1{font-size:22px;font-weight:800;}
 .main-content{padding:32px;overflow-y:auto;flex:1;}
 .pagina{display:none;}
@@ -277,16 +279,30 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
    RESPONSIVIDADE
 ══════════════════════════════════════ */
 
-/* ── Botão menu mobile ── */
+/* ── Botão hamburguer — só aparece no mobile ── */
 .btn-menu-mobile{
-  display:none;background:none;border:none;cursor:pointer;
-  color:white;font-size:22px;padding:4px 8px;line-height:1;
+  display:none;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:8px;
+  cursor:pointer;
+  color:white;
+  font-size:20px;
+  width:36px;height:36px;
+  align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:background .2s;
 }
+.btn-menu-mobile:hover{background:rgba(255,255,255,.22);}
 
-/* ── Overlay sidebar mobile ── */
+/* ── Overlay escuro quando sidebar aberta ── */
 .sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
-  z-index:199;backdrop-filter:blur(2px);
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:998;
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
 }
 .sidebar-overlay.show{display:block;}
 
@@ -295,88 +311,147 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
   .sidebar{width:220px;}
   .main-content{padding:20px;}
   .topbar{padding:14px 20px;}
-  .stats-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+  .stats-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;}
   .grid-2{grid-template-columns:1fr;gap:16px;}
   .form-grid{grid-template-columns:1fr;}
+  .stats-grid[style*="repeat(5"]{grid-template-columns:repeat(3,1fr)!important;}
 }
 
-/* ── Mobile (≤768px) ── */
+/* ═══════════════════════════════════════
+   MOBILE  ≤ 768 px
+   Sidebar vira gaveta — some por padrão
+═══════════════════════════════════════ */
 @media(max-width:768px){
-  /* Login */
-  .login-header h1{font-size:26px;}
-  .login-header{margin-bottom:32px;}
-  .portal-cards{flex-direction:column;align-items:center;gap:14px;}
-  .portal-card{width:100%;max-width:320px;padding:28px 24px;}
-  .login-box{padding:28px 20px;border-radius:16px;}
 
-  /* App layout */
-  #telaApp{flex-direction:column;}
-  .btn-menu-mobile{display:block;}
+  /* ── Login ── */
+  .login-header h1{font-size:24px;}
+  .login-header{margin-bottom:28px;}
+  .portal-cards{flex-direction:column;align-items:center;gap:12px;}
+  .portal-card{width:100%;max-width:300px;padding:24px 20px;}
+  .login-box{padding:24px 18px;border-radius:16px;margin:0 12px;}
+
+  /* ── Layout geral ── */
+  #telaApp{flex-direction:row;} /* mantém row mas sidebar some */
+
+  /* SIDEBAR: escondida por padrão, desliza da esquerda */
   .sidebar{
-    position:fixed;left:-280px;top:0;height:100vh;z-index:200;
-    width:260px;transition:left .28s cubic-bezier(.4,0,.2,1);
+    position:fixed !important;
+    top:0; left:-270px;
+    width:260px !important;
+    height:100vh;
+    z-index:999;
+    overflow-y:auto;
+    transition:transform .3s cubic-bezier(.4,0,.2,1),
+               left      .3s cubic-bezier(.4,0,.2,1);
     box-shadow:none;
+    /* remove sticky que conflitava */
+    min-height:unset;
   }
-  .sidebar.aberta{left:0;box-shadow:8px 0 32px rgba(0,0,0,.35);}
-  .content-wrap{width:100%;}
-  .topbar{padding:12px 16px;}
-  .topbar h1{font-size:18px;}
-  .main-content{padding:14px;}
-  .stats-grid{grid-template-columns:1fr 1fr;gap:12px;}
-  .dash-card{padding:16px 14px;}
-  .dash-card-value{font-size:28px;}
-  .grid-2{grid-template-columns:1fr;gap:14px;}
-  .card{padding:16px;border-radius:12px;}
-  .card-title{font-size:15px;}
-  .form-grid{grid-template-columns:1fr;}
+  .sidebar.aberta{
+    left:0 !important;
+    box-shadow:6px 0 40px rgba(0,0,0,.45);
+  }
 
-  /* Tabelas em mobile: scroll horizontal */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  table{min-width:500px;}
+  /* content-wrap ocupa tela toda */
+  .content-wrap{
+    width:100% !important;
+    min-width:0;
+    flex:1;
+  }
 
-  /* Modal */
-  .modal{padding:12px;}
-  .modal-box{padding:20px 16px;border-radius:14px;max-height:95vh;}
+  /* ── Topbar ── */
+  .btn-menu-mobile{display:flex;}
+  .topbar{padding:10px 14px;gap:10px;}
+  .topbar h1{font-size:17px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .topbar > div:last-child{flex-shrink:0;font-size:12px;}
+
+  /* ── Conteúdo ── */
+  .main-content{padding:12px;}
+
+  /* Dashboard cards: 2 colunas */
+  .stats-grid{grid-template-columns:1fr 1fr !important;gap:10px;margin-bottom:16px;}
+  .dash-card{padding:14px 12px;}
+  .dash-card-value{font-size:26px;}
+  .dash-card-icon{width:38px;height:38px;font-size:18px;}
+  .dash-card-label{font-size:12px;}
+
+  .grid-2{grid-template-columns:1fr!important;gap:12px;}
+  .card{padding:14px;border-radius:12px;margin-bottom:14px;}
+  .card-title{font-size:14px;margin-bottom:14px;}
+  .form-grid{grid-template-columns:1fr!important;}
+
+  /* ── Tabelas ── */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;}
+  table{min-width:480px;font-size:13px;}
+  th,td{padding:10px 12px;}
+
+  /* ── Modais ── */
+  .modal{padding:8px;align-items:flex-end;}
+  .modal-box{
+    padding:20px 16px;
+    border-radius:18px 18px 12px 12px;
+    max-height:92vh;
+    width:100%;
+    max-width:100%;
+  }
   .modal-box.largo{max-width:100%;}
-  .modal-footer{flex-wrap:wrap;}
-  .modal-footer .btn{flex:1;justify-content:center;min-width:120px;}
+  .modal-footer{flex-wrap:wrap;gap:8px;}
+  .modal-footer .btn{flex:1;justify-content:center;min-width:0;}
 
-  /* Portal empresa */
+  /* ── Portal Empresa ── */
   #telaEmpresa{flex-direction:column;}
-  .emp-topbar{padding:0 14px;height:54px;}
-  .emp-body{flex-direction:column;}
+  .emp-topbar{padding:0 12px;height:52px;}
+  .emp-topbar span[style*="font-size:22px"]{display:none;}
+  .emp-body{flex-direction:column;flex:1;}
   .emp-sidebar{
-    width:100%;display:flex;flex-wrap:wrap;border-right:none;
-    border-bottom:1px solid var(--border);padding:8px;gap:4px;
+    width:100%;
+    display:flex;
+    flex-direction:row;
+    border-right:none;
+    border-bottom:2px solid var(--border);
+    padding:6px 8px;
+    gap:4px;
+    overflow-x:auto;
   }
   .emp-menu-item{
-    flex:1;min-width:100px;justify-content:center;padding:9px 10px;
-    border-left:none;border-bottom:3px solid transparent;font-size:13px;
+    flex:1;
+    min-width:80px;
+    justify-content:center;
+    text-align:center;
+    padding:8px 6px;
+    border-left:none !important;
+    border-bottom:3px solid transparent;
+    font-size:13px;
     border-radius:8px;
+    white-space:nowrap;
   }
-  .emp-menu-item.ativo{border-left:none;border-bottom-color:var(--primary);background:#eef2ff;}
-  .emp-content{padding:14px;}
+  .emp-menu-item.ativo{
+    border-left:none !important;
+    border-bottom-color:var(--primary) !important;
+    background:#eef2ff;
+  }
+  .emp-content{padding:12px;overflow-y:auto;}
 
-  /* Resumo search */
+  /* ── Misc ── */
   .resumo-search{width:100%;}
-  
-  /* Doc items */
   .doc-header{flex-direction:column;gap:10px;}
-  .doc-actions{justify-content:flex-end;}
-
-  /* Topbar actions */
-  .topbar-actions{flex-wrap:wrap;gap:8px;}
+  .doc-actions{justify-content:flex-end;flex-wrap:wrap;}
+  .notif-badge{margin-left:6px;}
+  .versao-label{display:none;}
+  #filtroUnidadeWrap label{display:none;}
 }
 
-/* ── Pequeno (≤480px) ── */
+/* ── Muito pequeno ≤ 480 px ── */
 @media(max-width:480px){
-  .stats-grid{grid-template-columns:1fr;}
-  .login-header h1{font-size:22px;}
-  .portal-card{padding:22px 18px;}
-  .topbar h1{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
-  .dash-card-value{font-size:24px;}
-  .modal-footer .btn{min-width:80px;}
-  .emp-menu-item span{display:none;} /* esconde ícone em telas muito pequenas */
+  .stats-grid{grid-template-columns:1fr 1fr !important;gap:8px;}
+  .login-header h1{font-size:20px;}
+  .portal-card{padding:20px 16px;}
+  .dash-card-value{font-size:22px;}
+  .dash-card-label{font-size:11px;}
+  .modal-footer .btn{font-size:13px;padding:10px 12px;}
+  .topbar h1{max-width:160px;}
+  /* Stats 5 cards vira 1 coluna em telas muito pequenas */
+  .stats-grid[style*="repeat(5"]{grid-template-columns:1fr 1fr!important;}
 }
 </style>
 </head>
@@ -489,18 +564,18 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
   </div>
   <div class="content-wrap">
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
         <button class="btn-menu-mobile" onclick="toggleSidebar()" title="Menu">☰</button>
-        <h1 id="pageTitle">Dashboard</h1>
+        <h1 id="pageTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Dashboard</h1>
       </div>
-      <div style="display:flex;align-items:center;gap:14px;">
+      <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
         <div id="filtroUnidadeWrap" style="display:none;align-items:center;gap:8px;">
           <label style="font-size:12px;color:var(--muted);font-weight:600;">🏭 Unidade:</label>
           <select id="filtroUnidade" onchange="onFiltroUnidadeChange()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:white;outline:none;">
             <option value="">Todas as minhas unidades</option>
           </select>
         </div>
-        <span style="font-size:13px;color:var(--muted);">PGT v1.0 — Modo Local</span>
+        <span class="versao-label" style="font-size:13px;color:var(--muted);">PGT v1.0</span>
       </div>
     </div>
     <div class="main-content">
