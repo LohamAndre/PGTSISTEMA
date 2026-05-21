@@ -265,6 +265,119 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
 
 .info-demo{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;
   font-size:12px;color:#92400e;margin-bottom:16px;text-align:center;}
+
+/* ── TIPO DOC — observação destacada ── */
+.obs-tipo-doc{
+  background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+  padding:11px 14px;font-size:13px;color:#1e40af;margin-bottom:14px;display:none;
+}
+.obs-tipo-doc strong{display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ══════════════════════════════════════
+   RESPONSIVIDADE
+══════════════════════════════════════ */
+
+/* ── Botão menu mobile ── */
+.btn-menu-mobile{
+  display:none;background:none;border:none;cursor:pointer;
+  color:white;font-size:22px;padding:4px 8px;line-height:1;
+}
+
+/* ── Overlay sidebar mobile ── */
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:199;backdrop-filter:blur(2px);
+}
+.sidebar-overlay.show{display:block;}
+
+/* ── Tablet (≤1024px) ── */
+@media(max-width:1024px){
+  .sidebar{width:220px;}
+  .main-content{padding:20px;}
+  .topbar{padding:14px 20px;}
+  .stats-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+  .grid-2{grid-template-columns:1fr;gap:16px;}
+  .form-grid{grid-template-columns:1fr;}
+}
+
+/* ── Mobile (≤768px) ── */
+@media(max-width:768px){
+  /* Login */
+  .login-header h1{font-size:26px;}
+  .login-header{margin-bottom:32px;}
+  .portal-cards{flex-direction:column;align-items:center;gap:14px;}
+  .portal-card{width:100%;max-width:320px;padding:28px 24px;}
+  .login-box{padding:28px 20px;border-radius:16px;}
+
+  /* App layout */
+  #telaApp{flex-direction:column;}
+  .btn-menu-mobile{display:block;}
+  .sidebar{
+    position:fixed;left:-280px;top:0;height:100vh;z-index:200;
+    width:260px;transition:left .28s cubic-bezier(.4,0,.2,1);
+    box-shadow:none;
+  }
+  .sidebar.aberta{left:0;box-shadow:8px 0 32px rgba(0,0,0,.35);}
+  .content-wrap{width:100%;}
+  .topbar{padding:12px 16px;}
+  .topbar h1{font-size:18px;}
+  .main-content{padding:14px;}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:12px;}
+  .dash-card{padding:16px 14px;}
+  .dash-card-value{font-size:28px;}
+  .grid-2{grid-template-columns:1fr;gap:14px;}
+  .card{padding:16px;border-radius:12px;}
+  .card-title{font-size:15px;}
+  .form-grid{grid-template-columns:1fr;}
+
+  /* Tabelas em mobile: scroll horizontal */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{min-width:500px;}
+
+  /* Modal */
+  .modal{padding:12px;}
+  .modal-box{padding:20px 16px;border-radius:14px;max-height:95vh;}
+  .modal-box.largo{max-width:100%;}
+  .modal-footer{flex-wrap:wrap;}
+  .modal-footer .btn{flex:1;justify-content:center;min-width:120px;}
+
+  /* Portal empresa */
+  #telaEmpresa{flex-direction:column;}
+  .emp-topbar{padding:0 14px;height:54px;}
+  .emp-body{flex-direction:column;}
+  .emp-sidebar{
+    width:100%;display:flex;flex-wrap:wrap;border-right:none;
+    border-bottom:1px solid var(--border);padding:8px;gap:4px;
+  }
+  .emp-menu-item{
+    flex:1;min-width:100px;justify-content:center;padding:9px 10px;
+    border-left:none;border-bottom:3px solid transparent;font-size:13px;
+    border-radius:8px;
+  }
+  .emp-menu-item.ativo{border-left:none;border-bottom-color:var(--primary);background:#eef2ff;}
+  .emp-content{padding:14px;}
+
+  /* Resumo search */
+  .resumo-search{width:100%;}
+  
+  /* Doc items */
+  .doc-header{flex-direction:column;gap:10px;}
+  .doc-actions{justify-content:flex-end;}
+
+  /* Topbar actions */
+  .topbar-actions{flex-wrap:wrap;gap:8px;}
+}
+
+/* ── Pequeno (≤480px) ── */
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr;}
+  .login-header h1{font-size:22px;}
+  .portal-card{padding:22px 18px;}
+  .topbar h1{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+  .dash-card-value{font-size:24px;}
+  .modal-footer .btn{min-width:80px;}
+  .emp-menu-item span{display:none;} /* esconde ícone em telas muito pequenas */
+}
 </style>
 </head>
 <body>
@@ -341,7 +454,8 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
 
 <!-- ══ TELA APP (Admin/Analista) ══ -->
 <div id="telaApp" class="tela">
-  <div class="sidebar">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="fecharSidebar()"></div>
+  <div class="sidebar" id="sidebarEl">
     <div class="sidebar-header">
       <h2>🏗️ PGT</h2>
       <small>Gestão de Terceiros</small>
@@ -375,7 +489,10 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
   </div>
   <div class="content-wrap">
     <div class="topbar">
-      <h1 id="pageTitle">Dashboard</h1>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-menu-mobile" onclick="toggleSidebar()" title="Menu">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
       <div style="display:flex;align-items:center;gap:14px;">
         <div id="filtroUnidadeWrap" style="display:none;align-items:center;gap:8px;">
           <label style="font-size:12px;color:var(--muted);font-weight:600;">🏭 Unidade:</label>
@@ -556,10 +673,10 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
       <!-- Tipos de Documento -->
       <div id="pagina-tipos" class="pagina">
         <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
-          <button class="btn btn-primary" onclick="abrirModal('modalTipoDoc')">+ Novo Tipo</button>
+          <button class="btn btn-primary" onclick="abrirModalTipo()">+ Novo Tipo</button>
         </div>
         <div class="card"><div class="table-wrap"><table>
-          <thead><tr><th>Nome</th><th>Validade</th><th>Obrigatório para</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Nome</th><th>Validade</th><th>Obrigatório para</th><th>Orientações</th><th>Ações</th></tr></thead>
           <tbody id="tiposBody"></tbody>
         </table></div></div>
       </div>
@@ -771,15 +888,21 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
 <!-- Modal Tipo Documento -->
 <div class="modal" id="modalTipoDoc">
   <div class="modal-box">
-    <div class="modal-header"><h2>Novo Tipo de Documento</h2><button class="modal-close" onclick="fecharModal('modalTipoDoc')">✕</button></div>
+    <div class="modal-header"><h2 id="tituloModalTipo">Novo Tipo de Documento</h2><button class="modal-close" onclick="fecharModal('modalTipoDoc')">✕</button></div>
+    <input type="hidden" id="tipoId">
     <div class="form-group"><label>Nome *</label><input id="tipoNome" placeholder="Ex: ASO, NR-10"></div>
-    <div class="form-group"><label>Validade (dias)</label><input type="number" id="tipoValidade" placeholder="Ex: 180"></div>
+    <div class="form-group"><label>Validade (dias)</label><input type="number" id="tipoValidade" placeholder="Ex: 180 — deixe vazio se não tiver validade"></div>
     <div class="form-group"><label>Obrigatório para *</label>
       <select id="tipoObrig" onchange="document.getElementById('tipoFuncaoGrp').style.display=this.value==='funcao'?'block':'none'">
         <option value="empresa">Empresa</option><option value="colaborador">Colaborador</option><option value="funcao">Função específica</option>
       </select>
     </div>
     <div class="form-group" id="tipoFuncaoGrp" style="display:none;"><label>Função</label><input id="tipoFuncao" placeholder="Ex: Eletricista"></div>
+    <div class="form-group">
+      <label>Orientações / Observações</label>
+      <textarea id="tipoObservacao" placeholder="Descreva aqui as orientações para envio deste documento. Ex: O ASO deve ser emitido por médico do trabalho e conter o CRM. Enviar em PDF legível..." style="min-height:100px;"></textarea>
+      <small style="color:var(--muted);font-size:11px;">Estas orientações serão exibidas para a empresa ao selecionar este tipo de documento.</small>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="fecharModal('modalTipoDoc')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarTipo()">Salvar</button>
@@ -792,7 +915,8 @@ tr:last-child td{border-bottom:none;} tr:hover td{background:#fafafa;}
   <div class="modal-box">
     <div class="modal-header"><h2>📤 Enviar Documento</h2><button class="modal-close" onclick="fecharModal('modalEnvioEmpresa')">✕</button></div>
     <div id="empDocErro" class="msg-erro"></div>
-    <div class="form-group"><label>Tipo *</label><select id="empDocTipo"><option value="">Selecione</option></select></div>
+    <div class="form-group"><label>Tipo *</label><select id="empDocTipo" onchange="mostrarObsTipo(this.value)"><option value="">Selecione</option></select></div>
+    <div class="obs-tipo-doc" id="empDocObsTipo"><strong>💡 Orientações para este documento</strong><span id="empDocObsTexto"></span></div>
     <div class="form-group"><label>Colaborador (ou vazio para documento da empresa)</label><select id="empDocColab"><option value="">— Empresa geral —</option></select></div>
     <div class="form-group"><label>Validade</label><input type="date" id="empDocValidade"></div>
     <div class="form-group"><label>Arquivo *</label><input type="file" id="empDocArquivo" accept=".pdf,.jpg,.jpeg,.png"></div>
@@ -1241,6 +1365,7 @@ function showPagina(pag) {
   if (menu) menu.classList.add('ativo');
   document.getElementById('pageTitle').textContent = titulosPaginas[pag] || pag;
   if (loadPaginas[pag]) loadPaginas[pag]();
+  fecharSidebar();
 }
 
 function showPaginaEmp(pag) {
@@ -1855,18 +1980,52 @@ function carregarTipos() {
     <td><strong>${t.nome}</strong></td>
     <td>${t.validade_dias ? t.validade_dias+' dias' : 'Sem validade'}</td>
     <td>${t.obrigatorio_para==='empresa'?'Empresa':t.obrigatorio_para==='colaborador'?'Colaborador':'Função: '+t.funcao}</td>
-    <td><button class="btn btn-sm btn-danger" onclick="excluirTipo('${t.id}')">Excluir</button></td>
+    <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${(t.observacao||'').replace(/"/g,'&quot;')}">${t.observacao ? '💬 '+t.observacao : '<span style="color:var(--muted);">—</span>'}</td>
+    <td style="display:flex;gap:6px;">
+      <button class="btn btn-sm btn-secondary" onclick="editarTipo('${t.id}')">Editar</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirTipo('${t.id}')">Excluir</button>
+    </td>
   </tr>`).join('');
 }
 
+function abrirModalTipo() {
+  document.getElementById('tipoId').value = '';
+  document.getElementById('tituloModalTipo').textContent = 'Novo Tipo de Documento';
+  document.getElementById('tipoNome').value = '';
+  document.getElementById('tipoValidade').value = '';
+  document.getElementById('tipoObrig').value = 'empresa';
+  document.getElementById('tipoFuncao').value = '';
+  document.getElementById('tipoObservacao').value = '';
+  document.getElementById('tipoFuncaoGrp').style.display = 'none';
+  abrirModal('modalTipoDoc');
+}
+
+function editarTipo(id) {
+  const t = DB.get('tipos_documentos').find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('tipoId').value = id;
+  document.getElementById('tituloModalTipo').textContent = 'Editar Tipo de Documento';
+  document.getElementById('tipoNome').value = t.nome || '';
+  document.getElementById('tipoValidade').value = t.validade_dias || '';
+  document.getElementById('tipoObrig').value = t.obrigatorio_para || 'empresa';
+  document.getElementById('tipoFuncao').value = t.funcao || '';
+  document.getElementById('tipoObservacao').value = t.observacao || '';
+  document.getElementById('tipoFuncaoGrp').style.display = t.obrigatorio_para === 'funcao' ? 'block' : 'none';
+  abrirModal('modalTipoDoc');
+}
+
 function salvarTipo() {
+  const id    = document.getElementById('tipoId').value;
   const nome  = document.getElementById('tipoNome').value.trim();
   const val   = document.getElementById('tipoValidade').value;
   const obrig = document.getElementById('tipoObrig').value;
   const funcao= document.getElementById('tipoFuncao').value.trim();
+  const obs   = document.getElementById('tipoObservacao').value.trim();
   if (!nome) { alert('Informe o nome.'); return; }
   if (obrig === 'funcao' && !funcao) { alert('Informe a função.'); return; }
-  DB.add('tipos_documentos', { nome, validade_dias: val ? parseInt(val) : null, obrigatorio_para: obrig, funcao: obrig==='funcao'?funcao:null });
+  const data = { nome, validade_dias: val ? parseInt(val) : null, obrigatorio_para: obrig, funcao: obrig==='funcao'?funcao:null, observacao: obs || null };
+  if (id) DB.update('tipos_documentos', id, data);
+  else    DB.add('tipos_documentos', data);
   fecharModal('modalTipoDoc');
   carregarTipos();
 }
@@ -1875,6 +2034,19 @@ function excluirTipo(id) {
   if (!confirm('Excluir este tipo?')) return;
   DB.delete('tipos_documentos', id);
   carregarTipos();
+}
+
+// Exibe orientações ao selecionar tipo no portal empresa
+function mostrarObsTipo(tipoId) {
+  const t = DB.get('tipos_documentos').find(x => x.id === tipoId);
+  const box = document.getElementById('empDocObsTipo');
+  const txt = document.getElementById('empDocObsTexto');
+  if (t && t.observacao) {
+    txt.textContent = t.observacao;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -2104,6 +2276,22 @@ function popularTipos(selectId) {
 }
 
 // ══════════════════════════════════════════════
+// SIDEBAR MOBILE
+// ══════════════════════════════════════════════
+function toggleSidebar() {
+  const sb = document.getElementById('sidebarEl');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('aberta');
+  ov.classList.toggle('show');
+}
+function fecharSidebar() {
+  const sb = document.getElementById('sidebarEl');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.remove('aberta');
+  ov.classList.remove('show');
+}
+
+// ══════════════════════════════════════════════
 // EXPOSIÇÃO GLOBAL (necessário por ser type="module")
 // ══════════════════════════════════════════════
 Object.assign(window, {
@@ -2115,13 +2303,14 @@ Object.assign(window, {
   abrirModalDocumento, onDocParaChange, onDocEmpresaChange, salvarDocumento, excluirDoc, verDoc,
   abrirAnalise, aprovarDoc, reprovarDoc,
   carregarDashboard, filtrarResumo,
-  salvarTipo, excluirTipo,
+  abrirModalTipo, editarTipo, salvarTipo, excluirTipo, mostrarObsTipo,
   carregarUsuarios, aprovarUsuario, rejeitarUsuario, revogarUsuario,
   abrirVincularUnidades, salvarVinculoUnidades,
   carregarDocEmpresa, enviarDocEmpresa, carregarColabEmpresa, salvarColabEmpresa,
   carregarVencEmpresa, trocarSenhaEmpresa,
   abrirModal, fecharModal,
   onFiltroUnidadeChange,
+  toggleSidebar, fecharSidebar,
 });
 
 // ══════════════════════════════════════════════
