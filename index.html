@@ -1077,6 +1077,7 @@ import { initializeApp }                            from "https://www.gstatic.co
 import { getFirestore, collection, getDocs,
          doc, setDoc, updateDoc, deleteDoc,
          writeBatch }                               from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDjx_2gbjyo_ERwWjtDh6qMrErprG3HMqU",
@@ -1088,6 +1089,7 @@ const firebaseConfig = {
 };
 const _app = initializeApp(firebaseConfig);
 const _db  = getFirestore(_app);
+const _storage = getStorage(_app);
 
 // ══════════════════════════════════════════════
 // BANCO DE DADOS — Cache em memória + Firestore
@@ -1915,7 +1917,7 @@ function onDocEmpresaChange() {
     cols.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
 }
 
-function salvarDocumento() {
+async function salvarDocumento() {
   const tipoId  = document.getElementById('docTipo').value;
   const para    = document.getElementById('docPara').value;
   const empId   = document.getElementById('docEmpresa').value;
@@ -1933,16 +1935,27 @@ function salvarDocumento() {
     if (col) finalEmpId = col.empresa_id;
   }
 
-  // Nota: sem Cloudinary, arquivo não é enviado — apenas registra o nome
-  DB.add('documentos', {
-    tipo_doc_id: tipoId, empresa_id: finalEmpId,
-    colaborador_id: para === 'colaborador' ? colId : null,
-    arquivo_nome: file.name, arquivo_url: null,
-    validade: validade||null, observacao: obs, status: 'PENDENTE', justificativa: null
-  });
-  fecharModal('modalDocumento');
-  carregarDocumentos();
-  alert('Documento registrado! (Upload de arquivo disponível quando banco de dados for integrado)');
+  showLoading('Enviando arquivo...');
+  try {
+    const path = `documentos/${finalEmpId}/${Date.now()}_${file.name}`;
+    const storageRef = ref(_storage, path);
+    await uploadBytes(storageRef, file);
+    const arquivo_url = await getDownloadURL(storageRef);
+
+    DB.add('documentos', {
+      tipo_doc_id: tipoId, empresa_id: finalEmpId,
+      colaborador_id: para === 'colaborador' ? colId : null,
+      arquivo_nome: file.name, arquivo_url,
+      validade: validade||null, observacao: obs, status: 'PENDENTE', justificativa: null
+    });
+    fecharModal('modalDocumento');
+    carregarDocumentos();
+    hideLoading();
+    alert('✅ Documento enviado com sucesso!');
+  } catch(e) {
+    hideLoading();
+    alert('Erro ao enviar arquivo: ' + e.message);
+  }
 }
 
 function verDoc(url, nome) {
@@ -2344,16 +2357,29 @@ function carregarDocEmpresa() {
   const tipos = DB.get('tipos_documentos');
   const cols  = DB.find('colaboradores', 'empresa_id', empId);
   document.getElementById('empDocumentosBody').innerHTML = docs.length === 0
-    ? `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">Nenhum documento enviado.</td></tr>`
+    ? `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">Nenhum documento enviado.</td></tr>`
     : docs.map(d => {
         const tipo = tipos.find(t=>t.id===d.tipo_doc_id);
         const col  = d.colaborador_id ? cols.find(c=>c.id===d.colaborador_id) : null;
         const sc   = d.status==='APROVADO'?'success':d.status==='REPROVADO'?'danger':'warning';
+        const justificativaHtml = d.status==='REPROVADO' && d.justificativa
+          ? `<div style="margin-top:6px;padding:8px 10px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px;color:#991b1b;">
+               <strong>Motivo:</strong> ${d.justificativa}
+             </div>` : '';
+        const acoesHtml = `
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${d.arquivo_url ? `<button class="btn btn-sm btn-secondary" onclick="verDoc('${d.arquivo_url}','${d.arquivo_nome||''}')">👁️ Ver</button>` : ''}
+            ${d.status==='REPROVADO' ? `<button class="btn btn-sm btn-primary" onclick="abrirReenvio('${d.id}')">🔄 Corrigir</button>` : ''}
+          </div>`;
         return `<tr>
-          <td>${tipo?tipo.nome:'—'}</td><td>${col?col.nome:'Empresa'}</td>
+          <td>
+            <div>${tipo?tipo.nome:'—'}</div>
+            ${justificativaHtml}
+          </td>
+          <td>${col?col.nome:'Empresa'}</td>
           <td>${d.validade?new Date(d.validade+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
           <td><span class="badge ${sc}">${d.status||'PENDENTE'}</span></td>
-          <td>${d.arquivo_url?`<button class="btn btn-sm btn-primary" onclick="verDoc('${d.arquivo_url}','${d.arquivo_nome}')">👁️ Ver</button>`:'—'}</td>
+          <td>${acoesHtml}</td>
         </tr>`;
       }).join('');
   popularTipos('empDocTipo');
@@ -2396,7 +2422,7 @@ function carregarVencEmpresa() {
       }).join('');
 }
 
-function enviarDocEmpresa() {
+async function enviarDocEmpresa(docReenvioId = null) {
   const tipoId = document.getElementById('empDocTipo').value;
   const colId  = document.getElementById('empDocColab').value;
   const val    = document.getElementById('empDocValidade').value;
@@ -2404,14 +2430,74 @@ function enviarDocEmpresa() {
   const err    = document.getElementById('empDocErro');
   err.style.display = 'none';
   if (!tipoId || !file) { err.textContent='Selecione tipo e arquivo.'; err.style.display='block'; return; }
-  DB.add('documentos', {
-    tipo_doc_id: tipoId, empresa_id: usuarioAtual.empresa_id,
-    colaborador_id: colId||null, arquivo_nome: file.name,
-    arquivo_url: null, validade: val||null, status: 'PENDENTE', justificativa: null
-  });
-  fecharModal('modalEnvioEmpresa');
-  carregarDocEmpresa();
-  alert('✅ Documento registrado!');
+
+  showLoading('Enviando arquivo...');
+  try {
+    const empId = usuarioAtual.empresa_id;
+    const path  = `documentos/${empId}/${Date.now()}_${file.name}`;
+    const storageRef = ref(_storage, path);
+    await uploadBytes(storageRef, file);
+    const arquivo_url = await getDownloadURL(storageRef);
+
+    if (docReenvioId) {
+      // Reenvio: atualiza o documento existente para PENDENTE com novo arquivo
+      DB.update('documentos', docReenvioId, {
+        tipo_doc_id: tipoId, colaborador_id: colId||null,
+        arquivo_nome: file.name, arquivo_url,
+        validade: val||null, status: 'PENDENTE', justificativa: null
+      });
+    } else {
+      DB.add('documentos', {
+        tipo_doc_id: tipoId, empresa_id: empId,
+        colaborador_id: colId||null, arquivo_nome: file.name,
+        arquivo_url, validade: val||null, status: 'PENDENTE', justificativa: null
+      });
+    }
+    fecharModal('modalEnvioEmpresa');
+    carregarDocEmpresa();
+    hideLoading();
+    alert(docReenvioId ? '✅ Documento reenviado para análise!' : '✅ Documento enviado com sucesso!');
+  } catch(e) {
+    hideLoading();
+    err.textContent = 'Erro ao enviar: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+// Abre o modal de envio pré-preenchido para reenvio de documento reprovado
+function abrirReenvio(docId) {
+  const d = DB.get('documentos').find(x => x.id === docId);
+  if (!d) return;
+  // Preenche os campos do modal de envio
+  popularTipos('empDocTipo');
+  const cols = DB.find('colaboradores', 'empresa_id', usuarioAtual.empresa_id);
+  document.getElementById('empDocColab').innerHTML = '<option value="">— Empresa geral —</option>' +
+    cols.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  setTimeout(() => {
+    document.getElementById('empDocTipo').value    = d.tipo_doc_id || '';
+    document.getElementById('empDocColab').value   = d.colaborador_id || '';
+    document.getElementById('empDocValidade').value = d.validade || '';
+  }, 50);
+  document.getElementById('empDocArquivo').value = '';
+  document.getElementById('empDocErro').style.display = 'none';
+  // Altera título do modal e o botão de envio para identificar reenvio
+  document.querySelector('#modalEnvioEmpresa .modal-header h2').textContent = '🔄 Corrigir e Reenviar Documento';
+  // Troca o onclick do botão de salvar para passar o ID do doc
+  const btn = document.querySelector('#modalEnvioEmpresa .modal-footer .btn-primary');
+  btn.setAttribute('onclick', `enviarDocEmpresa('${docId}')`);
+  // Exibe orientações do tipo
+  mostrarObsTipo(d.tipo_doc_id);
+  // Mostra motivo da reprovação no modal
+  let avisoEl = document.getElementById('empReenvioAviso');
+  if (!avisoEl) {
+    avisoEl = document.createElement('div');
+    avisoEl.id = 'empReenvioAviso';
+    avisoEl.style.cssText = 'background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;font-size:13px;color:#991b1b;margin-bottom:14px;';
+    document.getElementById('empDocErro').insertAdjacentElement('afterend', avisoEl);
+  }
+  avisoEl.innerHTML = `<strong>⚠️ Motivo da reprovação:</strong><br>${d.justificativa || '—'}`;
+  avisoEl.style.display = 'block';
+  abrirModal('modalEnvioEmpresa');
 }
 
 function salvarColabEmpresa() {
