@@ -1929,11 +1929,13 @@ const _CLD_CLOUD  = 'dq9meqrqy';
 const _CLD_PRESET = 'ml_default';
 
 async function _uploadCloudinary(file) {
-  const fd = new FormData();
+  const ext   = file.name.split('.').pop().toLowerCase();
+  const tipo  = ext === 'pdf' ? 'raw' : 'image';
+  const fd    = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', _CLD_PRESET);
   fd.append('folder', 'documentos');
-  const res  = await fetch(`https://api.cloudinary.com/v1_1/${_CLD_CLOUD}/auto/upload`, { method: 'POST', body: fd });
+  const res  = await fetch(`https://api.cloudinary.com/v1_1/${_CLD_CLOUD}/${tipo}/upload`, { method: 'POST', body: fd });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error?.message || 'Erro no upload');
   return json.secure_url;
