@@ -1983,12 +1983,14 @@ function verDoc(url, nome) {
   document.getElementById('previewNome').textContent = nome;
   if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
     area.innerHTML = `<img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px;object-fit:contain;">`;
+    abrirModal('modalPreview');
   } else if (ext === 'pdf') {
-    area.innerHTML = `<iframe src="${url}" style="width:100%;height:70vh;border:none;border-radius:8px;"></iframe>`;
+    // PDF: abre direto numa nova aba — Cloudinary bloqueia iframe por CORS
+    window.open(url, '_blank');
   } else {
     area.innerHTML = `<div style="text-align:center;padding:40px;"><div style="font-size:48px;">📎</div><p>${nome}</p><a href="${url}" target="_blank" class="btn btn-primary" style="margin-top:16px;">⬇️ Baixar</a></div>`;
+    abrirModal('modalPreview');
   }
-  abrirModal('modalPreview');
 }
 
 function excluirDoc(id) {
@@ -2052,12 +2054,18 @@ function abrirAnalise(id) {
     if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
       prev.innerHTML = `<img src="${doc.arquivo_url}" style="max-width:100%;max-height:400px;border-radius:8px;object-fit:contain;">`;
     } else if (ext === 'pdf') {
-      prev.innerHTML = `<iframe src="${doc.arquivo_url}" style="width:100%;height:400px;border:none;border-radius:8px;"></iframe>`;
+      prev.innerHTML = `
+        <div style="text-align:center;padding:32px;background:#f8fafc;border-radius:10px;border:1.5px dashed #cbd5e1;">
+          <div style="font-size:48px;margin-bottom:12px;">📄</div>
+          <div style="font-weight:600;font-size:15px;margin-bottom:6px;">${doc.arquivo_nome}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Clique para abrir o PDF em uma nova aba</div>
+          <a href="${doc.arquivo_url}" target="_blank" class="btn btn-primary">🔍 Abrir PDF para visualizar</a>
+        </div>`;
     } else {
       prev.innerHTML = `<div style="text-align:center;padding:40px;"><a href="${doc.arquivo_url}" target="_blank" class="btn btn-secondary">⬇️ Baixar para visualizar</a></div>`;
     }
   } else {
-    prev.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">📎 Arquivo registrado sem upload (modo local)</div>`;
+    prev.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">📎 Nenhum arquivo enviado.</div>`;
   }
   document.getElementById('analiseJust').value = '';
   abrirModal('modalAnalise');
